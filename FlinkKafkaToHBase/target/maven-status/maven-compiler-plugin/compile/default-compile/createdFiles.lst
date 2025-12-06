@@ -1,2 +1,7 @@
 flink\etctraffic\KafkaToHBaseJob$HBaseSinkFunction.class
+flink\etctraffic\StreamAnalysisJob$HBaseSinkFunction.class
+flink\etctraffic\StreamAnalysisJob$RedisAlertSink.class
+flink\etctraffic\StreamAnalysisJob$DeckedVehicleProcessFunction$1.class
+flink\etctraffic\StreamAnalysisJob$DeckedVehicleProcessFunction.class
 flink\etctraffic\KafkaToHBaseJob.class
+flink\etctraffic\StreamAnalysisJob.class

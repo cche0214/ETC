@@ -302,8 +302,11 @@ node1打开Hbase，必须要先开HDFS再开Hbase，有次忘记了差点没把�
 然后打开Hbase shell，命令是hbase shell
 list输入有哪些表 统一用'etc_traffic_data'
 每次重新跑实验，就用
-    runcate 'etc_traffic_data' 
+    truncate 'etc_traffic_data' 
 作用是删除内容 原理是先disable drop 再建立表 牛逼
+查看表的最上面一条：
+scan 'etc_traffic_data', {LIMIT=>1, FORMATTER=>'toString'}
+
 
 kafka重点关注消息主题和消费者组
 主题如果不卡的话 统一用'etc_traffic_data'
@@ -327,6 +330,9 @@ Flink任务首先cmd到FlinkKaffaToHBase目录，修改代码之后
 mvn clean package
 重新生成tar包，覆盖/export/code目录下面的就可以
 flink run -d -m node1:8081 -c flink.etctraffic.KafkaToHBaseJob /export/code/FlinkKafkaToHBase-1.0-SNAPSHOT.jar
+
+加入了套牌车的命令
+flink run -d -m node1:8081 -c flink.etctraffic.StreamAnalysisJob /export/code/FlinkKafkaToHBase-1.0-SNAPSHOT.jar
 给集群提交任务
 可以通过Web看集群情况，url是node1:8081
 
@@ -345,14 +351,40 @@ zkServer.sh stop
 后端:Flask SpringBoot
 数据库：HBase MySQL Mycat
 
-  目前的一些启动指令：
-    在 node1, node2, node3 分别执行:
-        zkServer.sh start kafka-server-start.sh -daemon $KAFKA_HOME/config/server.properties
-    (在 NameNode 节点，通常是 node1)：
-        start-dfs.sh start-yarn.sh  start-hbase.sh hbase-daemon.sh start thrift -p 8085
-    KafKa相关：
-    kafka-topics.sh --list --bootstrap-server node1:9092    查看有哪些主题
-    kafka-topics.sh --describe --bootstrap-server node1:9092 --topic etc-traffic-data   查看特定主题的分区和副本状态
-    kafka-console-consumer.sh --bootstrap-server node1:9092 --topic etc-traffic-data --from-beginning --max-messages 10 查看历史数据
-  目前的停止指令：
-    kafka-server-stop.sh hbase-daemon.sh stop thrift stop-hbase.shstop-yarn.sh stop-dfs.sh zkServer.sh stop
+
+*==========================================*
+2025-12-6 今天开始Redis Remote Dictionary Server 远程词典服务
+内存数据库 NoSQL 读取速度快
+基于此 开发Flink套牌车检测和18个站点的分钟流量统计
+redis-3.2.12-2.el7.x86_64
+默认安装在/usr/local/bin目录下面
+自己给我配好了环境变量 不错不错
+
+启动：redis-server
+
+redis-server redis.conf 在安装目录/export/server/redis-6.2.6目录下面以配置文件设置启动
+
+端口：6379 版本6.2.6
+密码：050214@Redis
+
+Redis的key 项目名:业务名:类型:id
+Hash key field value
+
+*==========================*
+套牌车：Flink的State机制 keyBy(车牌号) 按照车牌号开辟独立存储空间
+针对套牌车检测，我们使用 keyBy(车牌号)。
+一旦进行了 keyBy，Flink 就会为每一个车牌号在内存（或 RocksDB）中开辟一块独立的存储空间。
+
+当 苏C12345 的第 1 条数据进来时，Flink 把它存到 苏C12345 的状态空间 里。
+当 苏C88888 的数据进来时，Flink 把它存到 苏C88888 的状态空间 里，互不干扰。
+当 苏C12345 的第 2 条数据进来时，Flink 会自动去 苏C12345 的状态空间 里把第 1 条数据拿出来，和第 2 条做对比。
+这就是 Flink 实现套牌车检测的底层原理：基于 Key 的状态管理。
+
+根据上面的特性 有了一个初步的检测方案
+对于每次读取的同一车牌的两个状态 根据车牌keyby
+然后计算两个状态之间的差值 如果小于10分钟（我们假设 十分钟之内不可能从任意一个卡口到达另一个卡口）
+就认为这辆车是套牌车 把车牌号存入Redis
+实际上如果更专业一点，可以继续把这个信息存入Hbase持久化存储
+不过我们这里没有搞
+
+接下来就是流量预测 继续分析一下

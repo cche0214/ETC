@@ -3,6 +3,37 @@
     <!-- 新增：品牌统计图表 -->
     <BrandStats />
     
+    <!-- 新增：套牌车报警 -->
+    <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px;">
+      <h2 style="color: #d9534f;">🚨 套牌车实时报警 (Decked Vehicle Alerts)</h2>
+      <div style="margin-bottom: 10px; color: #666;">
+        数据来源：Redis | 实时检测
+      </div>
+      <table v-if="alerts.length" border="1" cellpadding="8" style="width: 100%; border-color: #d9534f;">
+        <thead style="background: #fde2e2;">
+          <tr>
+            <th>车牌号</th>
+            <th>报警信息</th>
+            <th>地点1 (上次出现)</th>
+            <th>地点2 (本次出现)</th>
+            <th>报警时间</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(alert, index) in alerts" :key="index">
+            <td style="font-weight: bold; color: #d9534f;">{{ alert.plate }}</td>
+            <td>{{ alert.msg }}</td>
+            <td>{{ alert.loc1 }}</td>
+            <td>{{ alert.loc2 }}</td>
+            <td>{{ alert.time }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div v-else style="margin-top: 20px; color: #999;">
+        暂无套牌车报警信息...
+      </div>
+    </div>
+
     <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px;">
       <h2>🚗 实时交通监测数据 (Live)</h2>
       <div style="margin-bottom: 10px; color: #666;">
@@ -52,6 +83,7 @@ import axios from "axios"
 import BrandStats from './components/BrandStats.vue'
 
 const rows = ref([])
+const alerts = ref([])
 let timer = null
 
 // 调用 Flask 接口
@@ -67,10 +99,26 @@ async function fetchTraffic() {
   }
 }
 
+// 获取套牌车报警
+async function fetchAlerts() {
+  try {
+    const res = await axios.get("/api/decked_vehicles")
+    if (res.data && res.data.data) {
+      alerts.value = res.data.data
+    }
+  } catch (e) {
+    console.error("获取报警失败：" + e)
+  }
+}
+
 onMounted(() => {
   fetchTraffic()
+  fetchAlerts()
   // 开启轮询，每 2 秒获取一次最新数据
-  timer = setInterval(fetchTraffic, 2000)
+  timer = setInterval(() => {
+    fetchTraffic()
+    fetchAlerts()
+  }, 2000)
 })
 
 onUnmounted(() => {
