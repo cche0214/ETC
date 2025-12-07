@@ -116,15 +116,15 @@ def main():
     # 3. 遍历指定目录下的 CSV 文件
     csv_files = []
     for subdir in TARGET_SUBDIRS:
-        # 修改：只查找 _sorted.csv 结尾的文件 (已清洗且已排序)
-        search_path = os.path.join(DATA_DIR, subdir, '*_sorted.csv')
+        # 修改：只查找 _fixed.csv 结尾的文件 (已清洗且时间戳已修正)
+        search_path = os.path.join(DATA_DIR, subdir, '*_fixed.csv')
         # glob.glob 支持通配符查找
         found_files = glob.glob(search_path)
         csv_files.extend(found_files)
-        print(f"在 {subdir} 目录下找到 {len(found_files)} 个已排序的 CSV 文件")
+        print(f"在 {subdir} 目录下找到 {len(found_files)} 个已修正的 CSV 文件")
 
     if not csv_files:
-        print("未找到任何 _sorted.csv 文件，请先运行 sort_data_files.py 进行排序。")
+        print("未找到任何 _fixed.csv 文件，请先运行 clean_data_timestamps.py 进行清洗。")
         producer.close()
         return
 

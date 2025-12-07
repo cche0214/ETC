@@ -286,7 +286,7 @@ Flink的版本太老了 和Hbase很不协调 捣鼓了半天
 首先打开Zookeeper，端口2181：
     zkServer.sh start（status stop）
 然后打开kafka，后台启动：
-     kafka-server-start.sh -daemon $KAFKA_HOME/config/server.properties（后台启动方式）
+    kafka-server-start.sh -daemon $KAFKA_HOME/config/server.properties（后台启动方式）
 node1节点开启大数据集群：
     start-dfs.sh 
     start-yarn.sh 
@@ -321,6 +321,9 @@ kafka-topics.sh --create --bootstrap-server node1:9092 --replication-factor 3 --
 kafka-consumer-groups.sh --bootstrap-server node1:9092 --list
 删除指定的消费者组
 kafka-consumer-groups.sh --bootstrap-server node1:9092 --delete --group flink_hbase_group（消费者组名称）
+
+kafka-consumer-groups.sh --bootstrap-server node1:9092 --delete --group flink_traffic_analysis_group_v2
+
 每次测试完，首先删除消费者组，然后删除主题，再新建主题，哈哈
 测试的时候要新打开一个页面监听主题消息情况
 kafka-console-consumer.sh --bootstrap-server node1:9092 --topic etc_traffic_data --from-beginning
@@ -333,6 +336,9 @@ flink run -d -m node1:8081 -c flink.etctraffic.KafkaToHBaseJob /export/code/Flin
 
 加入了套牌车的命令
 flink run -d -m node1:8081 -c flink.etctraffic.StreamAnalysisJob /export/code/FlinkKafkaToHBase-1.0-SNAPSHOT.jar
+
+加入流量预测的命令
+flink run -d -m node1:8081 -c flink.etctraffic.StreamAnalysisJobV2 /export/code/FlinkKafkaToHBase-1.0-SNAPSHOT.jar
 给集群提交任务
 可以通过Web看集群情况，url是node1:8081
 
@@ -388,3 +394,66 @@ Hash key field value
 不过我们这里没有搞
 
 接下来就是流量预测 继续分析一下
+*===============================*
+回顾一下我们这个时间戳是怎么来的：
+1701388801000 是 Unix 时间戳（毫秒）。它是计算机世界通用的时间语言。
+
+1. 它是怎么来的？
+它的定义是：从 1970年1月1日 00:00:00 UTC 到现在的总毫秒数。
+
+对于北京时间 2023/12/1 00:00:01：
+
+北京时间：2023-12-01 00:00:01
+UTC 时间：2023-11-30 16:00:01 (北京是东八区，减8小时)
+计算：从 1970年 到 2023-11-30 16:00:01 经过了 1701388801 秒。
+毫秒：乘以 1000 -> 1701388801000。
+
+重大乌龙：时间戳你妈逼搞错了被坑了
+原始数据都是从0点开始的 比如2023-12-1 00.00.03 问题是 这个零点是北京时间 还是UTC格林威治时间？？？？？？？？？
+
+一开始的生成时间戳的逻辑 根本没有管这个，直接把
+
+左边是格林威治时间 右边是北京时间 所以其实右边的才是正确的妈的
+但是我的数据里面都是左边的 所以现在修改flink把他减去八个小时
+1701388801000 / 1701360001000
+
+
+Done: Unpacking the User's Queries
+这是一个非常经典且容易绕晕的概念。别急，我用最通俗的例子给你讲清楚。
+
+1. 什么是“Unix 时间戳”？
+Unix 时间戳是一个绝对值，它不分时区。
+它代表：从 1970年1月1日 00:00:00 (UTC 格林威治时间) 到现在的总秒数。
+
+你可以把它想象成一个全球统一的秒表，从那一刻开始一直在走，全世界任何地方看到的这个秒表读数都是一样的。
+
+2. 为什么你会觉得“时间戳分时区”？
+因为转换的过程分时区。
+
+假设你的 CSV 里写着：2023-12-01 00:00:01。
+这只是一个字符串，没有贴“时区标签”。
+
+情况 A（正确做法）：
+你告诉计算机：“这是北京时间的 00:00:01。”
+计算机心里想：北京时间 00:00:01 = UTC 时间 昨天 16:00:01。
+于是它算出秒表读数：1701360001。
+
+情况 B（你遇到的错误做法）：
+生成数据的程序告诉计算机：“这是UTC 时间的 00:00:01。”
+计算机心里想：哦，就是 UTC 00:00:01。
+于是它算出秒表读数：1701388801。
+
+看到了吗？
+同一个字符串 00:00:01，因为你告诉计算机的“时区前提”不同，算出来的“秒表读数（时间戳）”就差了 28800 秒（8小时）。
+
+3. 你的数据应该怎么转？
+既然你的 CSV 里的 2023-12-01 00:00:01 代表的是北京时间，那么正确的转换逻辑应该是：
+
+拿到字符串 2023-12-01 00:00:01。
+明确告诉转换函数：“这是 Asia/Shanghai 时区”。
+函数会自动把这个时间减去 8 小时，换算成 UTC 时间。
+最后生成时间戳。
+
+直接修改源文件
+
+今天实现了区间流量统计 把vue接入了交互式查询的接口 方法很暴力 把streamlit生成的网页直接作为一个路由路由进去

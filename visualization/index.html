@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ETC Big Data Storage</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <style>
+    :root {
+      --text-light: #f7f7f7;
+      --text-muted: rgba(255, 255, 255, 0.8);
+      --primary: #2b7cff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      background: #0e1a2b;
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    a {
+      color: var(--text-light);
+      text-decoration: none;
+    }
+
+    .hero {
+      position: relative;
+      height: 100vh;
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      align-items: center;
+      padding: 0 6vw;
+      isolation: isolate;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(0, 27, 77, 0.7) 0%, rgba(0, 17, 51, 0.35) 100%);
+      z-index: 0;
+    }
+
+    .nav {
+      position: absolute;
+      top: 24px;
+      right: 48px;
+      display: flex;
+      gap: 24px;
+      z-index: 2;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+    }
+
+    .nav a {
+      opacity: 0.9;
+      transition: opacity 0.2s ease;
+    }
+
+    .nav a:hover {
+      opacity: 1;
+    }
+
+    .content {
+      position: relative;
+      z-index: 2;
+      max-width: 760px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .kicker {
+      font-size: 44px;
+      font-weight: 700;
+      letter-spacing: 6px;
+    }
+
+    h1 {
+      font-size: clamp(42px, 6vw, 64px);
+      font-weight: 800;
+      letter-spacing: 6px;
+      line-height: 1.05;
+    }
+
+    p {
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 720px;
+      font-size: 15px;
+    }
+
+    .cta {
+      width: 140px;
+      padding: 12px 16px;
+      background: #fff;
+      color: #2c3e50;
+      border: none;
+      border-radius: 2px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      text-align: center;
+    }
+
+    .cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .dots {
+      position: absolute;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      z-index: 2;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.4);
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .dot.active {
+      background: var(--primary);
+      transform: scale(1.05);
+    }
+
+    @media (max-width: 768px) {
+      .nav {
+        right: 24px;
+        gap: 16px;
+        font-size: 12px;
+      }
+
+      .content {
+        max-width: 100%;
+      }
+
+      .kicker {
+        font-size: 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header class="hero" :style="heroStyle" @mouseenter="pause" @mouseleave="resume">
+      <nav class="nav">
+        <a href="#">数据大屏</a>
+        <a href="#">离线分析</a>
+        <a href="#">交互式查询</a>
+      </nav>
+
+      <div class="content">
+        <div class="kicker">ETC</div>
+        <h1>BIGDATASTORAGE</h1>
+        <p>
+          Through the special short-range communication between the on-board electronic tag installed on the windshield of the vehicle and the microwave antenna on the ETC lane of the toll station, the computer networking technology is used to carry out background settlement with the bank, so as to achieve the goal that the vehicle can pay the expressway or bridge fees without stopping at the expressway or bridge toll station.
+        </p>
+        <button class="cta">Learn More</button>
+      </div>
+
+      <div class="dots">
+        <span
+          v-for="(slide, index) in slides"
+          :key="slide.id"
+          class="dot"
+          :class="{ active: index === activeIndex }"
+          @click="goTo(index)"
+          :aria-label="`Slide ${index + 1}`"
+        ></span>
+      </div>
+    </header>
+  </div>
+
+  <script>
+    const { createApp, computed, onMounted, onBeforeUnmount } = Vue;
+
+    createApp({
+      data() {
+        return {
+          slides: [
+            {
+              id: 1,
+              url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2000&q=80"
+            },
+            {
+              id: 2,
+              url: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2000&q=80"
+            },
+            {
+              id: 3,
+              url: "https://images.unsplash.com/photo-1526336024174-e58f5cdd8e13?auto=format&fit=crop&w=2000&q=80"
+            }
+          ],
+          activeIndex: 0,
+          intervalId: null,
+          intervalMs: 6000
+        };
+      },
+      computed: {
+        heroStyle() {
+          const current = this.slides[this.activeIndex];
+          return {
+            backgroundImage: `linear-gradient(90deg, rgba(0, 27, 77, 0.65) 0%, rgba(0, 17, 51, 0.35) 100%), url(${current.url})`
+          };
+        }
+      },
+      methods: {
+        startAutoplay() {
+          this.intervalId = setInterval(() => {
+            this.next();
+          }, this.intervalMs);
+        },
+        stopAutoplay() {
+          if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+          }
+        },
+        next() {
+          this.activeIndex = (this.activeIndex + 1) % this.slides.length;
+        },
+        goTo(index) {
+          this.activeIndex = index;
+          this.restartAutoplay();
+        },
+        pause() {
+          this.stopAutoplay();
+        },
+        resume() {
+          this.startAutoplay();
+        },
+        restartAutoplay() {
+          this.stopAutoplay();
+          this.startAutoplay();
+        }
+      },
+      mounted() {
+        this.startAutoplay();
+      },
+      beforeUnmount() {
+        this.stopAutoplay();
+      }
+    }).mount("#app");
+  </script>
+</body>
+</html>
