@@ -111,9 +111,8 @@ FXLX：方向，取值为2的都是睢宁县，这个是个业务逻辑我觉得
 GCSJ：过车时间，清洗之后每个时间范围就是文件名称范围
 GCSJ_TS：过车时间转化出的时间戳，用于设计row-key
 2023-12-01 00:02:03
-→ 转换为 Unix timestamp = 1701388923
+→ 转换为 Unix timestamp = 1701388923(这里时间转换错了 参考下面的新逻辑 直接用就好了)
 → 乘以 1000 = 1701388923000
-GCSJ_MQ：过车时间的MySQL友好格式，给deepseek分析用
 *============*
 HPZL：号牌种类 02 01 52 51 13 22 未知 七种取值
 HPZL_LABEL：号牌种类的映射 大型汽车 小型汽车 外籍汽车 港澳车辆 挂车 教练车 未知
@@ -457,3 +456,99 @@ Unix 时间戳是一个绝对值，它不分时区。
 直接修改源文件
 
 今天实现了区间流量统计 把vue接入了交互式查询的接口 方法很暴力 把streamlit生成的网页直接作为一个路由路由进去
+
+*================*
+细节下周再聊吧，今天想设计一下mysql的分库分表主从分离
+其实有点没搞懂这个业务逻辑 不过至少这个不用flink流计算啥的了，感觉是一个比较轻松的拿下
+
+Mysql5.7 Mycat1.6.7.6-release
+
+
+还是一样的记一下指令 不记不行啊妈的
+登录MySQL mysql -uroot -p 然后输入密码050214@Mysql
+SHOW DATABASES;
+USE 数据库名
+SHOW TABLES;
+DESC 表名；
+DROP DATABASE 数据库名;
+配置文件在/etc/my.cnf
+
+/export/server/mycat/bin/mycat start stop status restart
+
+[root@node1 bin]# ./mycat start
+Starting Mycat-server...
+[root@node1 bin]# ./mycat status
+Mycat-server is running (14804).
+
+mysql -uroot -p123456 -h192.168.88.131 -P8066
+这条命令，实际上是登录mycat的命令
+因为现在小开发 都是root用户，我密码还设置成一样的了
+登录mycat -h表示你要连接哪台机器
+
+
+/export/server/mycat/conf 
+server.xml  定义用户端口系统参数
+schema.xml  定义逻辑库、逻辑表、分库规则
+rule.xml    定义具体的分片算法 哈希 取模 范围
+
+Mycat的8066是对应用提供mysql协议
+9066管理端口
+
+Mysql的服务器端口三台都是3306 这个相当于可以给中间件连接的端口 我们使用的时候不管他
+mycat提供8066端口 供外部访问，由这个端口连接三台mysql
+9066是mycatd的监控，调试端口
+
+用户问问题 → LangChain → SQL Agent → MyCat → 多个 MySQL → 返回查询结果
+
+JDBC（Java Database Connectivity）是 Java 访问数据库的标准方式。
+
+
+MySQL 的数据库是真实数据库；MyCat 的数据库是“逻辑数据库”。
+
+✔ MySQL 的数据库（真实库）
+
+你真实创建的：
+
+CREATE DATABASE traffic_db1;
+
+
+数据真正存在 node2/node3。
+
+✔ MyCat 的数据库（逻辑库）
+
+你在 schema.xml 定义：
+
+<!-- <schema name="traffic"> -->
+
+业务访问：
+
+USE traffic;
+
+MyCat 内部根据配置将 traffic 映射到：
+
+traffic_db1（node2）
+
+traffic_db2（node3）
+
+它本身 不存储数据，只存配置。、
+
+
+登录mycat的话，相当于操作逻辑数据库，sql根据规则路由到多个mysql 合并结果再返回
+平常主要是连接mycat操作
+
+
+哈希本质是字符串 hashing，不依赖具体字符。！
+解释了多年的疑问 我一直以为只有数字才能哈希
+
+mycat的逻辑库叫 TRAFFIC
+
+
+*===========================*
+2025-12-8 不用Mycat的了 永远启动不了
+改用SS proxy 监听端口3306
+
+安装目录：cd /export/server/shardingsphere-proxy/bin
+./start.sh
+这个看启动成功没有要去看log文件夹下面的sdout.log文件
+
+mysql -uroot -p050214@Proxy -h192.168.88.131 -P3306

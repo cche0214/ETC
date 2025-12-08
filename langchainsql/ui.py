@@ -14,15 +14,16 @@ model = init_chat_model(
     temperature=0.1
 )
 
-# ======== MySQL 连接（node1） ========
-node1_ip = "192.168.88.131"   # <<< 这里改成你的 node1 IP
-mysql_port = 3306             # <<< 如果你改过端口，这里也要改
+# ======== MySQL 连接（ShardingSphere Proxy） ========
+proxy_ip = "192.168.88.131"   # ShardingSphere-Proxy 运行在 node1 上
+proxy_port = 3307             # Proxy 默认端口 3307
 
-password = urllib.parse.quote("050214@Mysql")
+password = urllib.parse.quote("050214@Proxy")
 
 db = SQLDatabase.from_uri(
-    f"mysql+mysqlconnector://root:{password}@{node1_ip}:{mysql_port}/traffic"
+    f"mysql+mysqlconnector://traffic:{password}@{proxy_ip}:{proxy_port}/traffic"
 )
+
 
 # ======== 工具包 ========
 toolkit = SQLDatabaseToolkit(db=db, llm=model)
