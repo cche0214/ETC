@@ -2,7 +2,7 @@
   <div class="vehicle-type-bar-card">
     <div class="card-header">
       <div class="header-line"></div>
-      <h3>车型堵塞</h3>
+      <h3>车辆品牌分布 Top 10</h3>
       <div class="header-line"></div>
     </div>
     <div ref="chartRef" class="chart-container"></div>
@@ -12,62 +12,64 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
+import { getBrandStats } from '../api/dashboard'
 
 const chartRef = ref(null)
 let chart = null
+let timer = null
 
-// 模拟数据
-const chartData = ref([
-  { name: '三型(核)', value: 2527 },
-  { name: '二型(核)', value: 2758 },
-  { name: '一型(核)', value: 2795 },
-  { name: '二型(空)', value: 2783 },
-  { name: '三型(空)', value: 2710 },
-  { name: '六型(核)', value: 2690 },
-  { name: '五型(核)', value: 2568 },
-  { name: '一型(空)', value: 2624 }
-])
+// 获取数据
+const fetchData = async () => {
+  try {
+    const res = await getBrandStats()
+    if (res.status === 'success') {
+      updateChart(res.data)
+    }
+  } catch (error) {
+    console.error('获取品牌数据失败:', error)
+  }
+}
 
-const initChart = () => {
-  if (!chartRef.value) return
+// 更新图表
+const updateChart = (data) => {
+  if (!chart) return
   
-  chart = echarts.init(chartRef.value)
-  
-  const colors = ['#4A9EFF', '#00FF88', '#FFB800', '#FF6B6B', '#9B59B6', '#3498DB', '#E74C3C', '#1ABC9C']
-  
+  // 1. 数据处理：将 [{name: 'A', value: 10}, ...] 拆分为 X轴 和 Y轴数据
+  const xData = data.map(item => item.name)
+  const yData = data.map(item => item.value)
+
   const option = {
     tooltip: {
       trigger: 'axis',
-      axisPointer: {
-        type: 'shadow'
-      },
+      axisPointer: { type: 'shadow' },
       backgroundColor: 'rgba(0, 0, 0, 0.8)',
-      borderColor: 'rgba(74, 158, 255, 0.5)',
-      borderWidth: 1,
-      textStyle: {
-        color: '#fff'
-      },
-      formatter: '{b}<br/>车辆数: {c}'
+      borderColor: '#4A9EFF',
+      textStyle: { color: '#fff' }
     },
     grid: {
-      left: '25%',
-      right: '15%',
-      top: '5%',
-      bottom: '5%'
+      top: '15%',
+      left: '3%',
+      right: '4%',
+      bottom: '5%',
+      containLabel: true
     },
     xAxis: {
-      type: 'value',
-      max: 3000,
-      axisLine: {
-        show: false
-      },
-      axisTick: {
-        show: false
-      },
+      type: 'category',
+      data: xData, // 这里必须填入品牌名称数组
       axisLabel: {
-        color: 'rgba(255, 255, 255, 0.6)',
-        fontSize: 11
+        color: '#fff',
+        interval: 0, // 强制显示所有标签
+        rotate: 30,  // 稍微倾斜防止重叠
+        fontSize: 10
       },
+      axisLine: {
+        lineStyle: { color: '#4A9EFF' }
+      },
+      axisTick: { show: false }
+    },
+    yAxis: {
+      type: 'value',
+      axisLabel: { color: '#fff' },
       splitLine: {
         lineStyle: {
           color: 'rgba(74, 158, 255, 0.1)',
@@ -75,49 +77,24 @@ const initChart = () => {
         }
       }
     },
-    yAxis: {
-      type: 'category',
-      data: chartData.value.map(item => item.name),
-      axisLine: {
-        lineStyle: {
-          color: 'rgba(74, 158, 255, 0.3)'
-        }
-      },
-      axisLabel: {
-        color: '#fff',
-        fontSize: 12
-      },
-      axisTick: {
-        show: false
-      }
-    },
     series: [
       {
         name: '车辆数',
         type: 'bar',
-        barWidth: '60%',
-        data: chartData.value.map((item, index) => ({
-          value: item.value,
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
-              { offset: 0, color: colors[index] },
-              { offset: 1, color: colors[index] + '40' }
-            ]),
-            borderRadius: [0, 8, 8, 0]
-          }
-        })),
-        emphasis: {
-          itemStyle: {
-            shadowBlur: 20,
-            shadowColor: 'rgba(74, 158, 255, 0.5)'
-          }
+        data: yData, // 这里填入数值数组
+        barWidth: '40%',
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#00D4FF' },
+            { offset: 1, color: '#4A9EFF' }
+          ]),
+          borderRadius: [4, 4, 0, 0]
         },
         label: {
           show: true,
-          position: 'right',
+          position: 'top',
           color: '#fff',
-          fontSize: 12,
-          formatter: '{c}'
+          fontSize: 10
         }
       }
     ]
@@ -126,84 +103,65 @@ const initChart = () => {
   chart.setOption(option)
 }
 
-const updateData = (newData) => {
-  if (newData && chart) {
-    chartData.value = newData
-    const colors = ['#4A9EFF', '#00FF88', '#FFB800', '#FF6B6B', '#9B59B6', '#3498DB', '#E74C3C', '#1ABC9C']
-    chart.setOption({
-      yAxis: {
-        data: newData.map(item => item.name)
-      },
-      series: [{
-        data: newData.map((item, index) => ({
-          value: item.value,
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
-              { offset: 0, color: colors[index] },
-              { offset: 1, color: colors[index] + '40' }
-            ])
-          }
-        }))
-      }]
-    })
-  }
-}
-
-const resizeChart = () => {
-  chart?.resize()
+// 窗口大小改变时重绘
+const handleResize = () => {
+  chart && chart.resize()
 }
 
 onMounted(() => {
-  setTimeout(() => {
-    initChart()
-  }, 100)
-  window.addEventListener('resize', resizeChart)
+  if (chartRef.value) {
+    chart = echarts.init(chartRef.value)
+    fetchData()
+    // 每10秒刷新一次
+    timer = setInterval(fetchData, 10000)
+    window.addEventListener('resize', handleResize)
+  }
 })
 
 onUnmounted(() => {
-  chart?.dispose()
-  window.removeEventListener('resize', resizeChart)
+  if (timer) clearInterval(timer)
+  window.removeEventListener('resize', handleResize)
+  if (chart) chart.dispose()
 })
-
-defineExpose({ updateData })
 </script>
 
 <style scoped>
 .vehicle-type-bar-card {
-  background: rgba(27, 42, 82, 0.6);
-  border: 1px solid rgba(74, 158, 255, 0.3);
-  border-radius: 8px;
-  padding: 20px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
+  background: rgba(10, 15, 45, 0.5);
+  border: 1px solid rgba(74, 158, 255, 0.2);
+  border-radius: 8px;
+  padding: 10px;
+  box-sizing: border-box;
 }
 
 .card-header {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
-  gap: 10px;
+  justify-content: center;
+  height: 30px;
+  margin-bottom: 10px;
 }
 
 .header-line {
   flex: 1;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(74, 158, 255, 0.5), transparent);
+  height: 1px;
+  background: linear-gradient(90deg, rgba(74, 158, 255, 0) 0%, rgba(74, 158, 255, 0.5) 50%, rgba(74, 158, 255, 0) 100%);
 }
 
 .card-header h3 {
-  margin: 0;
-  font-size: 18px;
-  color: #4A9EFF;
-  white-space: nowrap;
-  letter-spacing: 2px;
+  margin: 0 15px;
+  font-size: 16px;
+  color: #00D4FF;
+  font-weight: normal;
 }
 
 .chart-container {
   flex: 1;
-  min-height: 0;
+  min-height: 0; /* 关键：防止 flex 子项溢出 */
+  width: 100%;
 }
 </style>

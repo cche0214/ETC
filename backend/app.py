@@ -9,13 +9,16 @@ from datetime import datetime, timedelta
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 
-HBASE_THRIFT_HOST = "10.193.129.192"
+
+#10.193.129.192
+HBASE_THRIFT_HOST = "192.168.88.131"
 HBASE_THRIFT_PORT = 8085
 # 这里的表名必须和 Flink 写入的表名一致
 TABLE_NAME = 'etc_traffic_data'
 
 # Redis 配置
-REDIS_HOST = "10.193.129.192"
+#10.193.129.192
+REDIS_HOST = "192.168.88.131"
 REDIS_PORT = 6379
 REDIS_PASSWORD = "050214@Redis"
 REDIS_KEY_DECKED = "Traffic:Alert:Decked"

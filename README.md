@@ -350,6 +350,7 @@ stop-dfs.sh
 zkServer.sh stop
 可以先关flink再一个个停止
 /export/server/flink/bin/stop-cluster.sh
+以后多了一个打开中间件和关闭中间件
 *===============================================*
 
 前端:Vue Vue Element
@@ -549,6 +550,8 @@ mycat的逻辑库叫 TRAFFIC
 
 安装目录：cd /export/server/shardingsphere-proxy/bin
 ./start.sh
+
+/export/server/shardingsphere-proxy/bin/start.sh
 这个看启动成功没有要去看log文件夹下面的sdout.log文件
 
 mysql -uroot -p050214@Proxy -h192.168.88.131 -P3306

@@ -10,23 +10,24 @@
       <!-- 左侧区域 -->
       <div class="left-column">
         <div class="section data-overview-section">
-          <data-overview ref="dataOverviewRef" />
+          <!-- <data-overview ref="dataOverviewRef" /> -->
         </div>
         <div class="section exit-station-section">
-          <exit-station-pie ref="exitStationRef" />
+          <!-- <exit-station-pie ref="exitStationRef" /> -->
         </div>
         <div class="section vehicle-congestion-section">
-          <vehicle-congestion ref="vehicleCongestionRef" />
+          <!-- 交换位置：将套牌车报警列表移到左下角 -->
+          <data-priority-list ref="dataListRef" />
         </div>
       </div>
 
       <!-- 中间区域 -->
       <div class="center-column">
         <div class="section map-section">
-          <flow-map ref="flowMapRef" />
+          <!-- <flow-map ref="flowMapRef" /> -->
         </div>
         <div class="section hourly-flow-section">
-          <hourly-flow3d ref="hourlyFlowRef" />
+          <!-- <hourly-flow3d ref="hourlyFlowRef" /> -->
         </div>
       </div>
 
@@ -39,7 +40,8 @@
           <vehicle-type-bar ref="vehicleTypeRef" />
         </div>
         <div class="section data-list-section">
-          <data-priority-list ref="dataListRef" />
+          <!-- 交换位置：将拥堵指数移到右下角 -->
+          <!-- <vehicle-congestion ref="vehicleCongestionRef" /> -->
         </div>
       </div>
     </div>

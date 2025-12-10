@@ -18,22 +18,21 @@
       <div class="main-content">
         <!-- 主标题 -->
         <h1 class="main-title">
-          <span class="title-line1">ETC</span>
-          <span class="title-line2">BIGDATASTORAGE</span>
+          <span class="title-line1">江苏·徐州</span>
+          <span class="title-line2">高速公路ETC大数据管理平台</span>
         </h1>
 
         <!-- 描述文本 -->
         <p class="description">
-          Through the special short-range communication between the on-board electronic tag installed on 
-          the windshield of the vehicle and the microwave antenna on the ETC lane of the toll station, the 
-          computer networking technology is used to carry out background settlement with the bank, so as 
-          to achieve the goal that the vehicle can pay the expressway or bridge fees without stopping at the 
-          expressway or bridge toll station.
+          本系统面向徐州市高速公路与国省干线卡口场景，
+          通过实时采集车辆通行数据，
+          依托Kafka流处理、Flink实时计算、HBase/MySQL分布式存储等大数据技术，
+          实现对交通流量、车辆类型分布、跨区域车辆活动、套牌车嫌疑行为等的智能分析。
         </p>
 
         <!-- 按钮 -->
         <button class="learn-more-btn" @click="goToDashboard">
-          Learn More
+          了解更多
         </button>
       </div>
 
@@ -49,10 +48,10 @@
 
       <!-- 顶部导航 -->
       <nav class="top-nav">
-        <RouterLink to="/dashboard" class="nav-link">数据大屏</RouterLink>
-        <RouterLink to="/dashboard" class="nav-link">趋势分析</RouterLink>
-        <RouterLink to="/search" class="nav-link">交互式查询</RouterLink>
-        <RouterLink to="/ai-chat" class="nav-link">AI 对话</RouterLink>
+        <RouterLink to="/dashboard" class="nav-link">数据总览</RouterLink>
+        <RouterLink to="/dashboard" class="nav-link">实时检测</RouterLink>
+        <RouterLink to="/search" class="nav-link">多维查询</RouterLink>
+        <RouterLink to="/ai-chat" class="nav-link">智能助手</RouterLink>
       </nav>
     </div>
   </div>
