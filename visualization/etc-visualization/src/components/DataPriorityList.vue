@@ -1,10 +1,5 @@
 <template>
   <div class="data-priority-card">
-    <!-- DEBUG INFO -->
-    <div style="background: rgba(0,0,0,0.8); color: #0f0; padding: 5px; font-size: 10px; max-height: 100px; overflow: auto; position: absolute; top: 0; left: 0; width: 100%; z-index: 1000;">
-      DEBUG: Count={{ dataList.length }} <br>
-      First={{ JSON.stringify(dataList[0]) }}
-    </div>
     <div class="card-header">
       <div class="header-line"></div>
       <h3>套牌车实时报警监控</h3>
@@ -42,32 +37,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, defineExpose } from 'vue'
 import { getDeckedVehicles } from '../api/dashboard'
 
-const dataList = ref([
-  // 模拟数据，匹配真实数据结构
-  {
-    msg: "套牌嫌疑: 10分钟内跨越不可达距离",
-    loc2: "S323-K10-市际卡口",
-    loc1: "S250-K1-省际卡口",
-    plate: "鲁Q66***",
-    time: "2025-12-09 17:05:00"
-  },
-  {
-    msg: "套牌嫌疑: 5分钟内出现于两地",
-    loc2: "G104-K873-省际卡口",
-    loc1: "G3-K731-省际卡口",
-    plate: "粤B88***",
-    time: "2025-12-09 17:02:30"
-  }
-])
-let timer = null
+const dataList = ref([])
 
 const fetchData = async () => {
   try {
     const res = await getDeckedVehicles()
-    console.log('Decked Vehicles API Response:', res)
     if (res.code === 200 && res.data) {
       dataList.value = res.data
     }
@@ -76,13 +53,13 @@ const fetchData = async () => {
   }
 }
 
-onMounted(() => {
-  fetchData()
-  timer = setInterval(fetchData, 5000) // 5秒刷新一次
+// 暴露给父组件调用
+defineExpose({
+  updateData: fetchData
 })
 
-onUnmounted(() => {
-  if (timer) clearInterval(timer)
+onMounted(() => {
+  fetchData()
 })
 </script>
 

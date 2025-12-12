@@ -1,220 +1,189 @@
 <template>
-  <div class="data-overview-card">
+  <div class="overview-card">
     <div class="card-header">
       <div class="header-line"></div>
-      <h3>数据总览</h3>
+      <h3>实时车流总览</h3>
       <div class="header-line"></div>
     </div>
-    <div class="gauge-container">
-      <div 
-        v-for="(item, index) in gaugeData" 
-        :key="index"
-        class="gauge-item"
-      >
-        <div :ref="el => setChartRef(el, index)" class="gauge-chart"></div>
-        <div class="gauge-label">{{ item.label }}</div>
+    
+    <div class="data-container">
+      <!-- 总车流量 -->
+      <div class="data-item total">
+        <div class="item-icon">
+          <div class="icon-inner"></div>
+        </div>
+        <div class="item-content">
+          <div class="item-label">总车流量</div>
+          <div class="item-value">{{ formatNumber(data.total) }}</div>
+        </div>
+      </div>
+
+      <!-- 入徐车流 -->
+      <div class="data-item inbound">
+        <div class="item-icon">
+          <div class="icon-inner"></div>
+        </div>
+        <div class="item-content">
+          <div class="item-label">入徐车流</div>
+          <div class="item-value">{{ formatNumber(data.inbound) }}</div>
+        </div>
+      </div>
+
+      <!-- 离徐车流 -->
+      <div class="data-item outbound">
+        <div class="item-icon">
+          <div class="icon-inner"></div>
+        </div>
+        <div class="item-content">
+          <div class="item-label">离徐车流</div>
+          <div class="item-value">{{ formatNumber(data.outbound) }}</div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import * as echarts from 'echarts'
+import { ref, reactive, defineExpose, onMounted } from 'vue'
+import { getOverview } from '../api/dashboard'
 
-// 定义仪表盘数据结构
-const gaugeData = ref([
-  { label: '车辆总数', value: 7619, max: 10000, color: '#00D4FF' },
-  { label: '三型车及以下', value: 1076, max: 5000, color: '#00FF88' },
-  { label: '四型车及以上', value: 6543, max: 10000, color: '#FFB800' }
-])
+const data = reactive({
+  total: 0,
+  inbound: 0,
+  outbound: 0
+})
 
-const charts = []
-const chartRefs = []
-
-const setChartRef = (el, index) => {
-  if (el) {
-    chartRefs[index] = el
-  }
+const formatNumber = (num) => {
+  return num ? num.toLocaleString() : '0'
 }
 
-const initCharts = () => {
-  gaugeData.value.forEach((item, index) => {
-    if (!chartRefs[index]) return
-    
-    const chart = echarts.init(chartRefs[index])
-    
-    const option = {
-      series: [
-        {
-          type: 'gauge',
-          radius: '80%',
-          startAngle: 225,
-          endAngle: -45,
-          min: 0,
-          max: item.max,
-          splitNumber: 8,
-          axisLine: {
-            lineStyle: {
-              width: 10,
-              color: [
-                [item.value / item.max, item.color],
-                [1, 'rgba(255,255,255,0.1)']
-              ]
-            }
-          },
-          pointer: {
-            show: false
-          },
-          axisTick: {
-            show: false
-          },
-          splitLine: {
-            distance: -10,
-            length: 8,
-            lineStyle: {
-              color: 'rgba(255,255,255,0.3)',
-              width: 1
-            }
-          },
-          axisLabel: {
-            distance: 15,
-            color: 'rgba(255,255,255,0.5)',
-            fontSize: 10
-          },
-          detail: {
-            valueAnimation: true,
-            formatter: '{value}',
-            color: item.color,
-            fontSize: 28,
-            fontWeight: 'bold',
-            offsetCenter: [0, '0%']
-          },
-          data: [{ value: item.value }]
-        },
-        // 外圈装饰
-        {
-          type: 'gauge',
-          radius: '85%',
-          startAngle: 225,
-          endAngle: -45,
-          axisLine: {
-            lineStyle: {
-              width: 2,
-              color: [[1, `${item.color}40`]]
-            }
-          },
-          splitLine: { show: false },
-          axisTick: { show: false },
-          axisLabel: { show: false },
-          detail: { show: false },
-          pointer: { show: false }
-        }
-      ]
+const fetchData = async () => {
+  try {
+    const res = await getOverview()
+    if (res.code === 200 || res.status === 'success') {
+      // 兼容不同的字段名
+      data.total = res.data.total_records || res.data.total || 0
+      data.inbound = res.data.traffic_in || res.data.inbound || 0
+      data.outbound = res.data.traffic_out || res.data.outbound || 0
     }
-    
-    chart.setOption(option)
-    charts.push(chart)
-  })
-}
-
-const updateData = (newData) => {
-  // 更新数据的方法，供父组件调用
-  if (newData && newData.length === 3) {
-    gaugeData.value = newData
-    charts.forEach((chart, index) => {
-      chart.setOption({
-        series: [{
-          data: [{ value: newData[index].value }]
-        }]
-      })
-    })
+  } catch (error) {
+    console.error('获取数据总览失败:', error)
   }
 }
 
-const resizeCharts = () => {
-  charts.forEach(chart => chart.resize())
-}
+defineExpose({
+  updateData: fetchData
+})
 
 onMounted(() => {
-  setTimeout(() => {
-    initCharts()
-  }, 100)
-  window.addEventListener('resize', resizeCharts)
+  fetchData()
 })
-
-onUnmounted(() => {
-  charts.forEach(chart => chart.dispose())
-  window.removeEventListener('resize', resizeCharts)
-})
-
-// 暴露方法供父组件使用
-defineExpose({ updateData })
 </script>
 
 <style scoped>
-.data-overview-card {
-  background: rgba(27, 42, 82, 0.6);
-  border: 1px solid rgba(74, 158, 255, 0.3);
-  border-radius: 8px;
-  padding: 20px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+.overview-card {
+  width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: rgba(10, 15, 45, 0.5);
+  border: 1px solid rgba(74, 158, 255, 0.2);
+  border-radius: 8px;
+  padding: 10px;
+  box-sizing: border-box;
 }
 
 .card-header {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
-  gap: 10px;
+  justify-content: center;
+  height: 30px;
+  margin-bottom: 15px;
+  flex-shrink: 0;
 }
 
 .header-line {
   flex: 1;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(74, 158, 255, 0.5), transparent);
+  height: 1px;
+  background: linear-gradient(90deg, rgba(74, 158, 255, 0) 0%, rgba(74, 158, 255, 0.5) 50%, rgba(74, 158, 255, 0) 100%);
 }
 
 .card-header h3 {
-  margin: 0;
-  font-size: 18px;
-  color: #4A9EFF;
+  margin: 0 15px;
+  font-size: 16px;
+  color: #00D4FF;
+  font-weight: normal;
   white-space: nowrap;
-  letter-spacing: 2px;
 }
 
-.gauge-container {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  gap: 20px;
-  height: calc(100% - 60px);
-}
-
-.gauge-item {
+.data-container {
   flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: space-around;
+  padding: 0 10px;
+}
+
+.data-item {
+  display: flex;
   align-items: center;
-  gap: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  transition: all 0.3s ease;
 }
 
-.gauge-chart {
-  width: 100%;
-  height: 160px;
+.data-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(5px);
 }
 
-.gauge-label {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
-  text-align: center;
-  font-weight: 500;
+.item-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+  background: rgba(0, 0, 0, 0.2);
 }
 
-@media (max-width: 1400px) {
-  .gauge-chart {
-    height: 140px;
-  }
+.icon-inner {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
 }
+
+.item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.item-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 4px;
+}
+
+.item-value {
+  font-size: 24px;
+  font-weight: bold;
+  font-family: 'DIN Alternate', 'Arial', sans-serif;
+  letter-spacing: 1px;
+}
+
+/* 颜色主题 */
+.total .item-icon { border: 1px solid rgba(74, 158, 255, 0.5); }
+.total .icon-inner { background: #4A9EFF; box-shadow: 0 0 10px #4A9EFF; }
+.total .item-value { color: #4A9EFF; text-shadow: 0 0 10px rgba(74, 158, 255, 0.3); }
+
+.inbound .item-icon { border: 1px solid rgba(255, 213, 110, 0.5); }
+.inbound .icon-inner { background: #FFD56E; box-shadow: 0 0 10px #FFD56E; }
+.inbound .item-value { color: #FFD56E; text-shadow: 0 0 10px rgba(255, 213, 110, 0.3); }
+
+.outbound .item-icon { border: 1px solid rgba(103, 249, 216, 0.5); }
+.outbound .icon-inner { background: #67F9D8; box-shadow: 0 0 10px #67F9D8; }
+.outbound .item-value { color: #67F9D8; text-shadow: 0 0 10px rgba(103, 249, 216, 0.3); }
 </style>

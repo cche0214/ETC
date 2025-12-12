@@ -2,46 +2,38 @@
   <div class="dashboard">
     <header class="header">
       <div class="header-bg"></div>
-      <h1 class="header-title">大数据存储平台交通监控</h1>
+      <h1 class="header-title">江苏·徐州大数据实时交通监控平台</h1>
       <div class="header-time">{{ currentTime }}</div>
     </header>
 
     <div class="container">
       <!-- 左侧区域 -->
       <div class="left-column">
-        <div class="section data-overview-section">
-          <!-- <data-overview ref="dataOverviewRef" /> -->
+        <div class="section overview-section">
+          <data-overview ref="overviewRef" />
         </div>
-        <div class="section exit-station-section">
-          <!-- <exit-station-pie ref="exitStationRef" /> -->
-        </div>
-        <div class="section vehicle-congestion-section">
-          <!-- 交换位置：将套牌车报警列表移到左下角 -->
-          <data-priority-list ref="dataListRef" />
+        <div class="section rose-section">
+          <vehicle-type-rose ref="vehicleTypeRoseRef" />
         </div>
       </div>
 
       <!-- 中间区域 -->
       <div class="center-column">
         <div class="section map-section">
-          <!-- <flow-map ref="flowMapRef" /> -->
+          <china-map />
         </div>
-        <div class="section hourly-flow-section">
-          <!-- <hourly-flow3d ref="hourlyFlowRef" /> -->
+        <div class="section realtime-section" style="flex-basis: 200px;">
+          <realtime-traffic-list ref="realtimeListRef" />
         </div>
       </div>
 
       <!-- 右侧区域 -->
       <div class="right-column">
-        <div class="section trend-section">
-          <realtime-flow-chart ref="trendChartRef" />
-        </div>
         <div class="section vehicle-type-section">
           <vehicle-type-bar ref="vehicleTypeRef" />
         </div>
-        <div class="section data-list-section">
-          <!-- 交换位置：将拥堵指数移到右下角 -->
-          <!-- <vehicle-congestion ref="vehicleCongestionRef" /> -->
+        <div class="section priority-list-section">
+          <data-priority-list ref="dataListRef" />
         </div>
       </div>
     </div>
@@ -50,26 +42,21 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import DataOverview from '../components/DataOverview.vue'
-import ExitStationPie from '../components/ExitStationPie.vue'
-import FlowMap from '../components/FlowMap.vue'
-import VehicleCongestion from '../components/VehicleCongestion.vue'
-import HourlyFlow3D from '../components/HourlyFlow3D.vue'
-import RealtimeFlowChart from '../components/RealtimeFlowChart.vue'
 import VehicleTypeBar from '../components/VehicleTypeBar.vue'
 import DataPriorityList from '../components/DataPriorityList.vue'
+import DataOverview from '../components/DataOverview.vue'
+import VehicleTypeRose from '../components/VehicleTypeRose.vue'
+import RealtimeTrafficList from '../components/RealtimeTrafficList.vue'
+import ChinaMap from '../components/ChinaMap.vue'
 
 const currentTime = ref('')
 
 // 组件引用
-const dataOverviewRef = ref(null)
-const exitStationRef = ref(null)
-const flowMapRef = ref(null)
-const vehicleCongestionRef = ref(null)
-const hourlyFlowRef = ref(null)
-const trendChartRef = ref(null)
 const vehicleTypeRef = ref(null)
 const dataListRef = ref(null)
+const overviewRef = ref(null)
+const vehicleTypeRoseRef = ref(null)
+const realtimeListRef = ref(null)
 
 function updateTime() {
   const now = new Date()
@@ -87,10 +74,21 @@ function updateTime() {
 // 模拟数据刷新（实际使用时替换为真实API调用）
 const refreshData = () => {
   // 这里可以调用各个组件的updateData方法更新数据
-  // 例如：
-  // dataOverviewRef.value?.updateData(newData)
-  // exitStationRef.value?.updateData(newData)
-  console.log('数据刷新中...')
+  if (vehicleTypeRef.value && vehicleTypeRef.value.updateData) {
+    vehicleTypeRef.value.updateData()
+  }
+  if (dataListRef.value && dataListRef.value.updateData) {
+    dataListRef.value.updateData()
+  }
+  if (overviewRef.value && overviewRef.value.updateData) {
+    overviewRef.value.updateData()
+  }
+  if (vehicleTypeRoseRef.value && vehicleTypeRoseRef.value.updateData) {
+    vehicleTypeRoseRef.value.updateData()
+  }
+  if (realtimeListRef.value && realtimeListRef.value.updateData) {
+    realtimeListRef.value.updateData()
+  }
 }
 
 let timeInterval = null
@@ -99,7 +97,9 @@ let dataInterval = null
 onMounted(() => {
   updateTime()
   timeInterval = setInterval(updateTime, 1000)
-  dataInterval = setInterval(refreshData, 30000) // 每30秒刷新一次数据
+  // 初始加载一次数据
+  setTimeout(refreshData, 500)
+  dataInterval = setInterval(refreshData, 5000) // 每5秒刷新一次数据
 })
 
 onUnmounted(() => {
@@ -190,39 +190,32 @@ onUnmounted(() => {
 }
 
 /* 左侧布局 */
-.data-overview-section {
-  flex: 0 0 240px;
+.overview-section {
+  flex: 0 0 320px; /* 增加高度以容纳三个数据项 */
 }
 
-.exit-station-section {
-  flex: 0 0 280px;
-}
-
-.vehicle-congestion-section {
+.rose-section {
   flex: 1;
   min-height: 0;
 }
 
 /* 中间布局 */
 .map-section {
-  flex: 1;
+  flex: 1; /* 占据大部分空间 */
   min-height: 0;
 }
 
-.hourly-flow-section {
-  flex: 0 0 350px;
+.realtime-section {
+  flex: 0 0 260px; /* 底部较小空间用于实时列表 (约展示5-6条数据) */
+  min-height: 0;
 }
 
 /* 右侧布局 */
-.trend-section {
-  flex: 0 0 280px;
-}
-
 .vehicle-type-section {
-  flex: 0 0 320px;
+  flex: 0 0 350px; /* 调整高度 */
 }
 
-.data-list-section {
+.priority-list-section {
   flex: 1;
   min-height: 0;
 }
