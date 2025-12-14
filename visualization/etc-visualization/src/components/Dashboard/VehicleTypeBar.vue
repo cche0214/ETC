@@ -1,8 +1,8 @@
 <template>
-  <div class="vehicle-type-rose-card">
+  <div class="vehicle-type-bar-card">
     <div class="card-header">
       <div class="header-line"></div>
-      <h3>车型分布统计</h3>
+      <h3>车辆品牌分布</h3>
       <div class="header-line"></div>
     </div>
     <div ref="chartRef" class="chart-container"></div>
@@ -10,100 +10,104 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, defineExpose } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
-import { getVehicleTypeStats } from '../api/dashboard'
+import { getBrandStats } from '../../api/dashboard'
 
 const chartRef = ref(null)
 let chart = null
 
+// 获取数据
 const fetchData = async () => {
   try {
-    const res = await getVehicleTypeStats()
-    if (res.code === 200 || res.status === 'success') {
+    const res = await getBrandStats()
+    if (res.status === 'success') {
       updateChart(res.data)
     }
   } catch (error) {
-    console.error('获取车型分布数据失败:', error)
+    console.error('获取品牌数据失败:', error)
   }
 }
 
+// 暴露给父组件调用
 defineExpose({
   updateData: fetchData
 })
 
+// 更新图表
 const updateChart = (data) => {
   if (!chart) return
-
-  // 对数据进行对数处理，缩小差异，但保留原始值用于 tooltip 显示
-  // 过滤掉值为0的数据，避免log计算错误
-  const processedData = data
-    .filter(item => item.value > 0)
-    .sort((a, b) => a.value - b.value) // 升序排列，漏斗图通常从小到大或从大到小
+  
+  // 1. 数据处理：将 [{name: 'A', value: 10}, ...] 拆分为 X轴 和 Y轴数据
+  const xData = data.map(item => item.name)
+  const yData = data.map(item => item.value)
 
   const option = {
     tooltip: {
-      trigger: 'item',
-      formatter: '{b} : {c}',
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
       backgroundColor: 'rgba(0, 0, 0, 0.8)',
       borderColor: '#4A9EFF',
       textStyle: { color: '#fff' }
     },
     grid: {
-      top: '10%',
-      left: '5%',
-      right: '15%',
+      top: '15%',
+      left: '3%',
+      right: '4%',
       bottom: '5%',
       containLabel: true
     },
     xAxis: {
-      type: 'value',
-      show: false
-    },
-    yAxis: {
       type: 'category',
-      data: processedData.map(item => item.name),
-      axisLine: { show: false },
-      axisTick: { show: false },
+      data: xData, // 这里必须填入品牌名称数组
       axisLabel: {
         color: '#fff',
-        fontSize: 12,
-        margin: 10
+        interval: 0, // 强制显示所有标签
+        rotate: 30,  // 稍微倾斜防止重叠
+        fontSize: 10
+      },
+      axisLine: {
+        lineStyle: { color: '#4A9EFF' }
+      },
+      axisTick: { show: false }
+    },
+    yAxis: {
+      type: 'value',
+      axisLabel: { color: '#fff' },
+      splitLine: {
+        lineStyle: {
+          color: 'rgba(74, 158, 255, 0.1)',
+          type: 'dashed'
+        }
       }
     },
     series: [
       {
-        name: '车型数量',
+        name: '车辆数',
         type: 'bar',
-        data: processedData.map(item => item.value),
-        barWidth: 12,
+        data: yData, // 这里填入数值数组
+        barWidth: '40%',
         itemStyle: {
-          borderRadius: [0, 10, 10, 0],
-          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: '#00D4FF' },
             { offset: 1, color: '#4A9EFF' }
-          ])
+          ]),
+          borderRadius: [4, 4, 0, 0]
         },
         label: {
           show: true,
-          position: 'right',
+          position: 'top',
           color: '#fff',
-          fontSize: 12,
-          formatter: '{c}'
-        },
-        // 添加背景条，让极小值也能看清位置
-        showBackground: true,
-        backgroundStyle: {
-          color: 'rgba(255, 255, 255, 0.05)',
-          borderRadius: [0, 10, 10, 0]
+          fontSize: 10
         }
       }
     ]
   }
-
+  
   chart.setOption(option)
 }
 
+// 窗口大小改变时重绘
 const handleResize = () => {
   chart && chart.resize()
 }
@@ -123,7 +127,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.vehicle-type-rose-card {
+.vehicle-type-bar-card {
   width: 100%;
   height: 100%;
   display: flex;
@@ -141,7 +145,6 @@ onUnmounted(() => {
   justify-content: center;
   height: 30px;
   margin-bottom: 10px;
-  flex-shrink: 0;
 }
 
 .header-line {
@@ -155,12 +158,11 @@ onUnmounted(() => {
   font-size: 16px;
   color: #00D4FF;
   font-weight: normal;
-  white-space: nowrap;
 }
 
 .chart-container {
   flex: 1;
-  min-height: 0;
+  min-height: 0; /* 关键：防止 flex 子项溢出 */
   width: 100%;
 }
 </style>

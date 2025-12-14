@@ -8,7 +8,7 @@ const routes = [
   { path: '/', component: Welcome },
   { path: '/dashboard', component: Dashboard },
   { path: '/search', component: VehicleSearch },
-  { path: '/ai-chat', component: StreamlitPage }
+  { path: '/stream', component: StreamlitPage }
 ]
 
 export default createRouter({

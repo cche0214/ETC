@@ -44,8 +44,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, defineExpose, onMounted } from 'vue'
-import { getOverview } from '../api/dashboard'
+import { ref, reactive, onMounted } from 'vue'
+import { getOverview } from '../../api/dashboard'
 
 const data = reactive({
   total: 0,

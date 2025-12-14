@@ -1,5 +1,8 @@
 import happybase
 import redis
+from urllib.parse import quote_plus
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker, scoped_session
 
 # 配置信息
 HBASE_THRIFT_HOST = "192.168.88.131"
@@ -9,6 +12,13 @@ TABLE_NAME = 'etc_traffic_data'
 REDIS_HOST = "192.168.88.131"
 REDIS_PORT = 6379
 REDIS_PASSWORD = "050214@Redis"
+
+# MySQL (ShardingSphere-Proxy) 配置
+MYSQL_HOST = "192.168.88.131"
+MYSQL_PORT = 3307
+MYSQL_USER = "root"
+MYSQL_PASSWORD = "050214@Proxy"
+MYSQL_DB = "traffic"
 
 # Redis Key 常量
 REDIS_KEY_DECKED = "Traffic:Alert:Decked"
@@ -33,3 +43,24 @@ def get_hbase_conn():
 def get_redis_conn():
     """获取 Redis 连接"""
     return redis.Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, decode_responses=True)
+
+# 创建 MySQL 引擎 (连接池)
+# 使用 pymysql 驱动
+# 注意：密码中包含特殊字符（如 @）时需要进行 URL 编码
+mysql_engine = create_engine(
+    f"mysql+pymysql://{MYSQL_USER}:{quote_plus(MYSQL_PASSWORD)}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DB}?charset=utf8mb4",
+    pool_size=10,
+    pool_recycle=3600,
+    echo=False  # 设置为 True 可打印 SQL 语句用于调试
+)
+
+# 创建 Session 工厂
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mysql_engine)
+
+def get_db_session():
+    """获取 MySQL Session (用于依赖注入或上下文管理)"""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

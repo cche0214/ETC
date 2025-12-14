@@ -37,8 +37,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, defineExpose } from 'vue'
-import { getDeckedVehicles } from '../api/dashboard'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { getDeckedVehicles } from '../../api/dashboard'
 
 const dataList = ref([])
 

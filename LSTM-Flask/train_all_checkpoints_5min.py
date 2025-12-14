@@ -22,7 +22,8 @@ from core.data_processor import DataLoader
 
 # 配置
 DATA_DIR = "data/checkpoints_5min"
-MODEL_DIR = "C:/temp/checkpoint_models_5min"
+# 修改模型保存路径为项目内的 saved_models_5min 目录
+MODEL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "saved_models_5min")
 MAPPING_FILE = os.path.join(DATA_DIR, "checkpoint_mapping_5min.json")
 
 # 模型参数

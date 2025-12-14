@@ -31,8 +31,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, defineExpose, computed } from 'vue'
-import { getRealtimeTraffic } from '../api/dashboard'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { getRealtimeTraffic } from '../../api/dashboard'
 
 const list = ref([])
 const isAnimating = ref(false)

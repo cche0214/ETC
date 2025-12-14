@@ -2,6 +2,9 @@
   <div class="dashboard">
     <header class="header">
       <div class="header-bg"></div>
+      <button class="back-btn" @click="$router.push('/')">
+        <span class="icon">←</span> 返回主页
+      </button>
       <h1 class="header-title">江苏·徐州大数据实时交通监控平台</h1>
       <div class="header-time">{{ currentTime }}</div>
     </header>
@@ -20,7 +23,7 @@
       <!-- 中间区域 -->
       <div class="center-column">
         <div class="section map-section">
-          <china-map />
+          <traffic-map />
         </div>
         <div class="section realtime-section" style="flex-basis: 200px;">
           <realtime-traffic-list ref="realtimeListRef" />
@@ -42,12 +45,12 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import VehicleTypeBar from '../components/VehicleTypeBar.vue'
-import DataPriorityList from '../components/DataPriorityList.vue'
-import DataOverview from '../components/DataOverview.vue'
-import VehicleTypeRose from '../components/VehicleTypeRose.vue'
-import RealtimeTrafficList from '../components/RealtimeTrafficList.vue'
-import ChinaMap from '../components/ChinaMap.vue'
+import VehicleTypeBar from '../components/Dashboard/VehicleTypeBar.vue'
+import DataPriorityList from '../components/Dashboard/DataPriorityList.vue'
+import DataOverview from '../components/Dashboard/DataOverview.vue'
+import VehicleTypeRose from '../components/Dashboard/VehicleTypeRose.vue'
+import RealtimeTrafficList from '../components/Dashboard/RealtimeTrafficList.vue'
+import TrafficMap from '../components/Dashboard/TrafficMap.vue'
 
 const currentTime = ref('')
 
@@ -162,6 +165,31 @@ onUnmounted(() => {
   font-size: 16px;
   color: rgba(255, 255, 255, 0.8);
   font-family: 'Courier New', monospace;
+}
+
+.back-btn {
+  position: absolute;
+  left: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(74, 158, 255, 0.1);
+  border: 1px solid rgba(74, 158, 255, 0.5);
+  color: #4A9EFF;
+  padding: 8px 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  border-radius: 4px;
+  z-index: 20;
+}
+
+.back-btn:hover {
+  background: rgba(74, 158, 255, 0.3);
+  box-shadow: 0 0 15px rgba(74, 158, 255, 0.3);
+  text-shadow: 0 0 5px rgba(74, 158, 255, 0.8);
 }
 
 .container {

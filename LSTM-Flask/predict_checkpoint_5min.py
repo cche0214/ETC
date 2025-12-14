@@ -8,13 +8,15 @@
 
 import os
 import json
+import random
 import numpy as np
 import pandas as pd
 from keras.models import load_model
 
 # 配置
-MODEL_DIR = "C:/temp/checkpoint_models_5min"
-MAPPING_FILE = "data/checkpoints_5min/checkpoint_mapping_5min.json"
+# 修改模型加载路径为项目内的 saved_models_5min 目录
+MODEL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "saved_models_5min")
+MAPPING_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data/checkpoints_5min/checkpoint_mapping_5min.json")
 
 def load_checkpoint_mapping():
     """加载卡口映射信息"""
@@ -104,17 +106,23 @@ def prepare_input_data(recent_data):
     # 转换为numpy数组 shape: (9, 3)
     data_array = np.array(data_with_lags, dtype=float)
     
-    # 标准化（使用第一行作为基准）
-    normalised_data = []
-    for row in data_array:
-        base = row[0] if row[0] != 0 else 1  # Open值作为基准
-        normalised_row = [(val / base) - 1 for val in row]
-        normalised_data.append(normalised_row)
+    # 标准化 (Column-wise normalization)
+    # 参考 inference.py: normalise_windows
+    # 对每一列，除以该列的第一个元素，然后减 1
+    normalised_data = np.zeros_like(data_array)
+    
+    for col_i in range(data_array.shape[1]):
+        base = data_array[0, col_i]
+        if base == 0:
+            base = 1 # 避免除零
+        normalised_data[:, col_i] = (data_array[:, col_i] / base) - 1
     
     # 转换为numpy数组并添加batch维度: (1, 9, 3)
     X = np.array([normalised_data], dtype=float)
     
-    return X, data_array[-1, 0]  # 返回输入数据和最后一行的基准值
+    # 返回输入数据和用于反归一化的基准值 (Open列的第一个值)
+    # 注意：inference.py 中使用的是 x[0][0]，即窗口的第一个时间步的Open值
+    return X, data_array[0, 0]
 
 def predict_checkpoint(checkpoint_name, recent_data):
     """
@@ -142,49 +150,69 @@ def predict_checkpoint(checkpoint_name, recent_data):
     
     return round(predicted_traffic, 2)
 
-def example_usage():
-    """示例用法"""
-    print("\n" + "="*60)
-    print("5分钟级别车流量预测 - 示例")
-    print("="*60)
+def test_all_checkpoints():
+    """批量测试所有卡口的预测功能"""
+    print("\n" + "="*90)
+    print("批量测试所有卡口预测模型 (模拟随机数据)")
+    print("="*90)
     
-    # 列出可用卡口
-    checkpoints = list_available_checkpoints()
-    
-    if not checkpoints:
-        print("❌ 未找到可用卡口")
+    # 加载映射
+    mapping = load_checkpoint_mapping()
+    if not mapping:
         return
+    checkpoints = list(mapping.keys())
+
+    print(f"{'卡口名称':<22} | {'最近11个点数据 (模拟)':<45} | {'预测':<6} | {'变化'}")
+    print("-" * 95)
+
+    success_count = 0
     
-    # 选择一个车流量较大的卡口进行测试
-    test_checkpoint = 'G3-K731-省际卡口'
-    
-    print(f"\n测试卡口: {test_checkpoint}")
-    print("-" * 60)
-    
-    # 模拟最近11个5分钟的车流量数据（用于生成9个时间步）
-    recent_11_periods = [5, 6, 8, 10, 12, 11, 13, 15, 14, 16, 18]
-    
-    print(f"\n输入数据（最近11个5分钟）:")
-    for i, traffic in enumerate(recent_11_periods, 1):
-        print(f"  T-{12-i}: {traffic} 辆")
-    
-    try:
-        # 预测
-        predicted = predict_checkpoint(test_checkpoint, recent_11_periods)
-        
-        print(f"\n预测结果:")
-        print(f"  未来5分钟车流量: {predicted} 辆")
-        print(f"  当前5分钟车流量: {recent_11_periods[-1]} 辆")
-        change = predicted - recent_11_periods[-1]
-        print(f"  变化: {change:+.2f} 辆 ({change/recent_11_periods[-1]*100:+.1f}%)")
-        
-    except FileNotFoundError as e:
-        print(f"\n❌ 错误: {e}")
-        print("请先运行 train_all_checkpoints_5min.py 训练模型")
-    except Exception as e:
-        print(f"\n❌ 预测失败: {str(e)}")
-    
-    print("\n" + "="*60 + "\n")
+    for checkpoint in checkpoints:
+        # 1. 生成模拟数据: 随机基准值 + 随机波动
+        # 模拟不同量级的车流
+        if 'G' in checkpoint: # 国道/高速通常流量大
+            base = random.randint(50, 120) 
+        else:
+            base = random.randint(10, 40)  # 省道/县道流量小
+            
+        # 生成11个数据点，模拟波动
+        data = []
+        val = base
+        for _ in range(11):
+            # 随机波动 -10% 到 +10%
+            change = random.randint(int(-val*0.1 - 1), int(val*0.1 + 1))
+            val += change
+            val = max(0, val) # 流量不能为负
+            data.append(val)
+            
+        try:
+            # 2. 调用预测
+            pred = predict_checkpoint(checkpoint, data)
+            
+            # 3. 格式化输出
+            data_str = str(data)
+            # 如果数据太长，截断显示
+            if len(data_str) > 45:
+                data_str = "..." + data_str[-42:]
+            
+            current = data[-1]
+            diff = pred - current
+            diff_str = f"{diff:+.1f}"
+            
+            # 简单的趋势箭头
+            arrow = "↑" if diff > 0 else "↓" if diff < 0 else "-"
+            
+            print(f"{checkpoint:<22} | {data_str:<45} | {pred:<6} | {diff_str} {arrow}")
+            success_count += 1
+            
+        except FileNotFoundError:
+             print(f"{checkpoint:<22} | {'(模型文件未找到)':<45} | {'N/A':<6} | -")
+        except Exception as e:
+            print(f"{checkpoint:<22} | {str(e):<45} | {'Err':<6} | -")
+
+    print("-" * 95)
+    print(f"测试完成: {success_count}/{len(checkpoints)} 个卡口预测成功")
 
 if __name__ == '__main__':
-    example_usage()
+    # example_usage()
+    test_all_checkpoints()

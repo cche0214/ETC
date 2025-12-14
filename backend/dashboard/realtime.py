@@ -4,6 +4,16 @@ import time
 from db import get_hbase_conn, get_redis_conn, TABLE_NAME, REDIS_KEY_LATEST_TIME, REDIS_KEY_FLOW_PREFIX, MONITOR_STATIONS
 from . import dashboard_bp
 
+# 引入预测模块
+try:
+    from prediction.predictor import predict_next_traffic
+except ImportError:
+    # 兼容开发环境路径问题
+    import sys
+    import os
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+    from prediction.predictor import predict_next_traffic
+
 @dashboard_bp.route("/realtime")
 def get_latest_traffic():
     """
@@ -119,7 +129,8 @@ def get_traffic_flow_history():
         time_points = []
         time_labels = []
         
-        for i in range(8, -1, -1):
+        # 修改为 10，获取最近 11 个点 (0-10)，用于 LSTM 预测构建特征 (9个时间步 + 2个滞后)
+        for i in range(10, -1, -1):
             ts = current_bucket_ts - (i * bucket_size)
             time_points.append(str(ts))
             dt = datetime.fromtimestamp(ts / 1000.0)
@@ -139,12 +150,17 @@ def get_traffic_flow_history():
                 else:
                     clean_values.append(int(v))
             
+            # 调用预测模型获取下一个5分钟的预测值
+            # 注意：clean_values 必须是最近的11个点
+            predicted_val = predict_next_traffic(station, clean_values)
+
             series_data.append({
                 "name": station,
                 "type": "line",
                 "data": clean_values,
                 "smooth": True,
-                "showSymbol": False
+                "showSymbol": False,
+                "prediction": predicted_val  # 新增预测字段
             })
             
         return Response(json.dumps({

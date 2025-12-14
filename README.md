@@ -350,7 +350,10 @@ stop-dfs.sh
 zkServer.sh stop
 可以先关flink再一个个停止
 /export/server/flink/bin/stop-cluster.sh
+
 以后多了一个打开中间件和关闭中间件
+/export/server/shardingsphere-proxy/bin/start.sh
+/export/server/shardingsphere-proxy/bin/stop.sh
 *===============================================*
 
 前端:Vue Vue Element
@@ -546,7 +549,7 @@ mycat的逻辑库叫 TRAFFIC
 
 *===========================*
 2025-12-8 不用Mycat的了 永远启动不了
-改用SS proxy 监听端口3306
+改用SS proxy 监听端口3307
 
 安装目录：cd /export/server/shardingsphere-proxy/bin
 ./start.sh
@@ -554,4 +557,35 @@ mycat的逻辑库叫 TRAFFIC
 /export/server/shardingsphere-proxy/bin/start.sh
 这个看启动成功没有要去看log文件夹下面的sdout.log文件
 
-mysql -uroot -p050214@Proxy -h192.168.88.131 -P3306
+mysql -uroot -p050214@Proxy -h192.168.88.131 -P3307
+
+搞错咯 mysql是监听在3306 但是proxy是3307
+
+*======================*
+2025-12-14 考完六级了我无敌
+G3-K731这个卡口的经纬度好像有点问题
+
+假设你从 Redis 获取了最近 11 个数据点（从旧到新）：
+[v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11]
+其中 v11 是当前最新的 5 分钟流量。
+
+你需要构造的 (9, 3) 矩阵如下：
+
+时间步 (Time Step)	Open (当前)	High (前1个)	Close (前2个)	对应数据
+Step 1 (最旧)	v3	v2	v1	[v3, v2, v1]
+Step 2	v4	v3	v2	[v4, v3, v2]
+Step 3	v5	v4	v3	[v5, v4, v3]
+...	...	...	...	...
+Step 8	v10	v9	v8	[v10, v9, v8]
+Step 9 (最新)	v11	v10	v9	[v11, v10, v9]
+
+为什么需要 11 个点来凑 9 个时间步？
+既然模型只需要看 9 个时间步（9个5分钟），为什么我要你取 11 个点呢？
+
+这是因为你的模型在每个时间步上，不仅看“当前流量”，还要看“前一刻流量”和“前两刻流量”（即 Open, High, Close 特征）。
+
+模型通过train_all_checkpoint_5min训练出来，保存在save_models_5min文件夹下面，然后我尝试调用一下
+
+马上就要被替代了，我跟他说需求，他就把功能实现了，唉……，俱往矣…………………………
+
+感觉差不多可以进入数据库调优和RAG的阶段了 剩下的可以测试看看有什么问题 先看一下RAG吧
