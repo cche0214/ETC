@@ -1,4 +1,4 @@
-# ETC-BigData-Platform
+# ETC
 Highway ETC big data management and monitoring system built with Hadoop, Spark, Flink, and HBase.
 
   2025-11-30 项目规划
@@ -596,3 +596,5 @@ Step 9 (最新)	v11	v10	v9	[v11, v10, v9]
 可能是我之前少算了一个卡口
 
 原来是文件名字错了 哈哈 我以为文件名字错了呢
+
+在 ETC/RAG 目录下启动

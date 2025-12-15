@@ -3,12 +3,14 @@ import Welcome from '../pages/Welcome.vue'
 import Dashboard from '../pages/Dashboard.vue'
 import VehicleSearch from '../pages/VehicleSearch.vue'
 import StreamlitPage from '../pages/StreamlitPage.vue'
+import ChatDeepseek from '../pages/ChatDeepseek.vue'
 
 const routes = [
   { path: '/', component: Welcome },
   { path: '/dashboard', component: Dashboard },
   { path: '/search', component: VehicleSearch },
-  { path: '/stream', component: StreamlitPage }
+  { path: '/stream', component: StreamlitPage },
+  { path: '/chat', component: ChatDeepseek },
 ]
 
 export default createRouter({

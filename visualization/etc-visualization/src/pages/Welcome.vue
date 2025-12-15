@@ -51,7 +51,7 @@
         <RouterLink to="/dashboard" class="nav-link">数据总览</RouterLink>
         <RouterLink to="/stream" class="nav-link">实时检测</RouterLink>
         <RouterLink to="/search" class="nav-link">多维查询</RouterLink>
-        <RouterLink to="/ai-chat" class="nav-link">智能助手</RouterLink>
+        <RouterLink to="/chat" class="nav-link">智能助手</RouterLink>
       </nav>
     </div>
   </div>
