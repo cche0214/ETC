@@ -1,7 +1,7 @@
 import axios from 'axios'
 
-// 假设后端运行在本地 8080 端口
-const API_BASE_URL = 'http://localhost:8080/api'
+// 使用相对路径，通过 Vite 代理转发到后端
+const API_BASE_URL = '/api'
 
 const request = axios.create({
   baseURL: API_BASE_URL,

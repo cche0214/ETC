@@ -73,7 +73,7 @@ const fetchResults = async (params) => {
   })
 
   try {
-    const response = await axios.post('http://localhost:8080/api/search', {
+    const response = await axios.post('/api/search', {
       ...params,
       page: currentPage.value,
       pageSize: pageSize
@@ -125,7 +125,7 @@ const handleExport = async () => {
   })
 
   try {
-    const response = await axios.post('http://localhost:8080/api/export', {
+    const response = await axios.post('/api/export', {
       ...currentParams.value
     }, {
       responseType: 'blob' // 重要：指定响应类型为 blob

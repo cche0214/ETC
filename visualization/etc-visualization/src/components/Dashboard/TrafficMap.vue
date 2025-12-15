@@ -10,53 +10,100 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import * as echarts from 'echarts';
+import axios from 'axios';
 // 引入江苏地图数据
 import jiangsuJson from '../../assets/jiangsu.json';
 
 const chartRef = ref(null);
 let chart = null;
+const updateTime = ref('');
+let timer = null;
 
-// 模拟数据：江苏省各城市来徐州的车流量
-const mockData = [
-  { name: '南京市', value: 3000 },
-  { name: '无锡市', value: 2000 },
-  { name: '徐州市', value: 5000 }, // 本地
-  { name: '常州市', value: 1500 },
-  { name: '苏州市', value: 2500 },
-  { name: '南通市', value: 1800 },
-  { name: '连云港市', value: 2200 },
-  { name: '淮安市', value: 2800 },
-  { name: '盐城市', value: 1600 },
-  { name: '扬州市', value: 1400 },
-  { name: '镇江市', value: 1200 },
-  { name: '泰州市', value: 1300 },
-  { name: '宿迁市', value: 2600 }
+// 卡口基础坐标数据
+const checkpointCoords = {
+  'G3-K731-省际卡口': [117.07, 36.15],
+  'G104-K744-省际卡口': [117.33, 34.53],
+  'G104-K873-省际卡口': [117.59, 34.04],
+  'G206-K816-省际卡口': [117.18, 34.10],
+  'G235-K10-市际卡口': [118.36, 34.38],
+  'G310-K310-省际卡口': [117.03, 34.29],
+  'G311-K207-省际卡口': [117.07, 34.25],
+  'G518-K358-省际卡口': [116.41, 34.75],
+  'S250-K1-省际卡口': [118.06, 34.62],
+  'S251-K5-省际卡口': [117.76, 34.48],
+  'S252-K56-省际卡口': [117.59, 34.03],
+  'S253-K0-省际卡口': [116.81, 34.92],
+  'S323-K10-市际卡口': [118.62, 34.38],
+  'S323-K96-市际卡口': [118.35, 34.34],
+  'S324-K201-市际卡口': [118.14, 33.90],
+  'S325-K63-市际卡口': [118.08, 33.91],
+  'S505-K10-市际卡口': [118.21, 34.26],
+  'X308-K19-市际卡口': [116.86, 34.49],
+  'G237-K148-省际卡口': [116.50, 34.60]
+};
+
+const fetchData = async () => {
+  try {
+    console.log('正在请求地图数据...');
+    const response = await axios.get('/api/dashboard/map_data');
+    console.log('地图数据响应:', response.data);
+    
+    if (response.data.code === 200) {
+      const { cityDistribution, checkpointFlows, updateTime: time } = response.data.data;
+      updateTime.value = time;
+      updateChart(cityDistribution, checkpointFlows);
+    } else {
+      console.warn('地图数据请求成功但返回码非200:', response.data);
+    }
+  } catch (error) {
+    console.error('获取地图数据失败:', error);
+  }
+};
+
+// 完整江苏城市列表，用于补全数据
+const JIANGSU_CITIES = [
+  '南京市', '无锡市', '徐州市', '常州市', '苏州市', 
+  '南通市', '连云港市', '淮安市', '盐城市', '扬州市', 
+  '镇江市', '泰州市', '宿迁市'
 ];
 
-// 卡口数据 (经纬度 + 模拟实时流量)
-const checkpoints = [
-  { name: 'G3-K731-省际卡口', value: [117.07, 36.15, 120] },
-  { name: 'G104-K744-省际卡口', value: [117.33, 34.53, 85] },
-  { name: 'G104-K873-省际卡口', value: [117.59, 34.04, 92] },
-  { name: 'G206-K816-省际卡口', value: [117.18, 34.10, 76] },
-  { name: 'G235-K10-市际卡口', value: [118.36, 34.38, 45] },
-  { name: 'G310-K310-省际卡口', value: [117.03, 34.29, 110] },
-  { name: 'G311-K207-省际卡口', value: [117.07, 34.25, 65] },
-  { name: 'G518-K358-省际卡口', value: [116.41, 34.75, 55] },
-  { name: 'S250-K1-省际卡口', value: [118.06, 34.62, 40] },
-  { name: 'S251-K5-省际卡口', value: [117.76, 34.48, 38] },
-  { name: 'S252-K56-省际卡口', value: [117.59, 34.03, 42] },
-  { name: 'S253-K0-省际卡口', value: [116.81, 34.92, 95] },
-  { name: 'S323-K10-市际卡口', value: [118.62, 34.38, 30] },
-  { name: 'S323-K96-市际卡口', value: [118.35, 34.34, 28] },
-  { name: 'S324-K201-市际卡口', value: [118.14, 33.90, 35] },
-  { name: 'S325-K63-市际卡口', value: [118.08, 33.91, 33] },
-  { name: 'S505-K10-市际卡口', value: [118.21, 34.26, 25] },
-  { name: 'X308-K19-市际卡口', value: [116.86, 34.49, 20] },
-  { name: 'G237-K148-省际卡口', value: [116.50, 34.60, 60] }
-];
+const updateChart = (cityData, flowData) => {
+  if (!chart) return;
+
+  // 1. 补全城市数据 (防止后端返回部分城市导致地图显示 NaN)
+  const fullCityData = JIANGSU_CITIES.map(city => {
+    const found = cityData.find(item => item.name === city);
+    return {
+      name: city,
+      value: found ? found.value : 0
+    };
+  });
+
+  // 2. 构造卡口散点数据
+  const scatterData = [];
+  for (const [name, coords] of Object.entries(checkpointCoords)) {
+    const flow = flowData[name] || 0;
+    scatterData.push({
+      name: name,
+      value: [...coords, flow] // [lon, lat, flow]
+    });
+  }
+
+  chart.setOption({
+    series: [
+      {
+        name: '车流量',
+        data: fullCityData
+      },
+      {
+        name: '卡口实时流量',
+        data: scatterData
+      }
+    ]
+  });
+};
 
 const initChart = () => {
   if (!chartRef.value) return;
@@ -72,14 +119,18 @@ const initChart = () => {
       trigger: 'item',
       formatter: (params) => {
         if (params.seriesName === '卡口实时流量') {
-          return `${params.name}<br/>实时流量: ${params.value[2]} 辆`;
+          const flow = params.value[2];
+          const time = updateTime.value || '暂无数据';
+          return `${params.name}<br/>实时流量: ${flow} 辆<br/>更新时间: ${time}`;
         }
-        return `${params.name}: ${params.value} 辆`;
+        // 处理地图区域数据，防止 NaN
+        const val = params.value;
+        return `${params.name}: ${Number.isNaN(val) ? 0 : val} 辆`;
       }
     },
     visualMap: {
       min: 0,
-      max: 5000, // 根据数据调整
+      max: 1000, // 根据实际数据调整，徐州市705，其他较小
       left: 'left',
       bottom: '20',
       text: ['高', '低'],
@@ -120,15 +171,18 @@ const initChart = () => {
         name: '车流量',
         type: 'map',
         geoIndex: 0, // 使用 geo 组件的坐标系
-        data: mockData
+        data: [] // 初始为空
       },
       // 卡口位置
       {
         name: '卡口实时流量',
         type: 'scatter', // 使用散点图
         coordinateSystem: 'geo',
-        data: checkpoints,
-        symbolSize: 6, // 点的大小
+        data: Object.entries(checkpointCoords).map(([name, coords]) => ({
+          name: name,
+          value: [...coords, 0]
+        })), // 初始显示所有卡口，流量为0
+        symbolSize: 8, // 点的大小
         itemStyle: {
           color: '#ff0000', // 红色
           shadowBlur: 5,
@@ -144,10 +198,14 @@ const initChart = () => {
 
 onMounted(() => {
   initChart();
+  fetchData();
+  // 每30秒刷新一次
+  timer = setInterval(fetchData, 30000);
   window.addEventListener('resize', resizeChart);
 });
 
 onUnmounted(() => {
+  if (timer) clearInterval(timer);
   window.removeEventListener('resize', resizeChart);
   if (chart) {
     chart.dispose();

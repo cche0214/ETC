@@ -1,7 +1,8 @@
-from flask import Response, request, json
+from flask import Response, request, json, jsonify
 from datetime import datetime
 import time
-from db import get_hbase_conn, get_redis_conn, TABLE_NAME, REDIS_KEY_LATEST_TIME, REDIS_KEY_FLOW_PREFIX, MONITOR_STATIONS
+from sqlalchemy import text
+from db import get_hbase_conn, get_redis_conn, SessionLocal, TABLE_NAME, REDIS_KEY_LATEST_TIME, REDIS_KEY_FLOW_PREFIX, MONITOR_STATIONS
 from . import dashboard_bp
 
 # 引入预测模块
@@ -13,6 +14,112 @@ except ImportError:
     import os
     sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
     from prediction.predictor import predict_next_traffic
+
+# 江苏车牌前缀映射
+JIANGSU_PLATE_MAP = {
+    '苏A': '南京市', '苏B': '无锡市', '苏C': '徐州市', '苏D': '常州市',
+    '苏E': '苏州市', '苏F': '南通市', '苏G': '连云港市', '苏H': '淮安市',
+    '苏J': '盐城市', '苏K': '扬州市', '苏L': '镇江市', '苏M': '泰州市',
+    '苏N': '宿迁市'
+}
+
+@dashboard_bp.route("/map_data")
+def get_map_data():
+    """
+    [地图数据接口]
+    URL: /api/dashboard/map_data
+    Method: GET
+    
+    功能:
+    1. 获取江苏省各城市车辆分布 (基于 HBase 最新 1000 条数据采样统计)
+    2. 获取各卡口实时车流 (基于 Redis 最新 5分钟窗口)
+    """
+    try:
+        # --- Part 1: 城市车辆分布 (HBase) ---
+        city_distribution = []
+        try:
+            conn = get_hbase_conn()
+            table = conn.table(TABLE_NAME)
+            
+            # 统计字典
+            temp_map = {}
+            
+            # 扫描最新的 1000 条记录作为实时分布样本
+            # HBase RowKey 设计通常让最新数据排在前面
+            scan_limit = 1000
+            scanner = table.scan(limit=scan_limit)
+            
+            for row_key, data in scanner:
+                # 查找车牌号码字段 (假设列族为 'info' 或其他，这里遍历查找 HPHM)
+                hphm = None
+                for key, value in data.items():
+                    # key 格式通常为 b'cf:col'
+                    col_decoded = key.decode('utf-8')
+                    if 'HPHM' in col_decoded:
+                        hphm = value.decode('utf-8')
+                        break
+                
+                if hphm and hphm.startswith('苏'):
+                    prefix = hphm[:2]
+                    if prefix in JIANGSU_PLATE_MAP:
+                        city_name = JIANGSU_PLATE_MAP[prefix]
+                        temp_map[city_name] = temp_map.get(city_name, 0) + 1
+            
+            conn.close()
+            
+            # 转换为列表格式
+            for city, count in temp_map.items():
+                city_distribution.append({"name": city, "value": count})
+                
+        except Exception as e:
+            print(f"HBase Query Error: {e}")
+            # 出错时返回空列表
+            city_distribution = []
+
+        # --- Part 2: 卡口实时车流 (Redis) ---
+        checkpoint_flows = {}
+        latest_data_time_str = ""
+        try:
+            r = get_redis_conn()
+            
+            # 获取基准时间 (Traffic:LatestTime)
+            latest_ts_str = r.get(REDIS_KEY_LATEST_TIME)
+            if not latest_ts_str:
+                latest_ts = int(time.time() * 1000)
+            else:
+                latest_ts = int(latest_ts_str)
+            
+            # 格式化为可读时间字符串，用于返回给前端
+            latest_data_time_str = datetime.fromtimestamp(latest_ts / 1000.0).strftime("%Y-%m-%d %H:%M:%S")
+                
+            # 计算当前 5分钟桶的时间戳
+            bucket_size = 5 * 60 * 1000
+            current_bucket_ts = latest_ts - (latest_ts % bucket_size)
+            ts_key = str(current_bucket_ts)
+            
+            # 遍历卡口获取流量
+            for station in MONITOR_STATIONS:
+                redis_key = REDIS_KEY_FLOW_PREFIX + station
+                # HGET 获取单个时间点的值
+                flow = r.hget(redis_key, ts_key)
+                checkpoint_flows[station] = int(flow) if flow else 0
+                
+        except Exception as e:
+            print(f"Redis Query Error: {e}")
+            checkpoint_flows = {}
+
+        return Response(json.dumps({
+            "code": 200,
+            "message": "success",
+            "data": {
+                "cityDistribution": city_distribution,
+                "checkpointFlows": checkpoint_flows,
+                "updateTime": latest_data_time_str  # 使用 Redis 中的业务数据时间
+            }
+        }, ensure_ascii=False), mimetype='application/json')
+
+    except Exception as e:
+        return Response(json.dumps({"code": 500, "message": str(e)}, ensure_ascii=False), mimetype='application/json')
 
 @dashboard_bp.route("/realtime")
 def get_latest_traffic():

@@ -5,7 +5,10 @@
       <button class="back-btn" @click="$router.push('/')">
         <span class="icon">←</span> 返回主页
       </button>
-      <h1 class="header-title">实时交通流量预测中心</h1>
+      <h1 class="header-title">
+        实时交通流量预测中心
+        <span class="data-time" v-if="latestDataTime">({{ latestDataTime }})</span>
+      </h1>
       <div class="header-time">{{ currentTime }}</div>
     </header>
 
@@ -40,10 +43,13 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import TrafficChart from '../components/StreamlitPage/TrafficChart.vue'
 import PredictionTable from '../components/StreamlitPage/PredictionTable.vue'
-import dayjs from 'dayjs'
+import axios from 'axios'
+import { ElMessage } from 'element-plus'
 
 const currentTime = ref('')
+const latestDataTime = ref('')
 const timer = ref(null)
+const dataTimer = ref(null)
 const xAxisData = ref([])
 const rawSeriesData = ref([])
 
@@ -61,87 +67,49 @@ const updateTime = () => {
   currentTime.value = `${year}-${month}-${day} ${weekDay} ${hours}:${minutes}:${seconds}`
 }
 
-// 生成模拟数据
-const generateMockData = () => {
-  // 生成最近12个时间点（每5分钟）
-  const times = []
-  const now = dayjs()
-  for (let i = 11; i >= 0; i--) {
-    times.push(now.subtract(i * 5, 'minute').format('HH:mm'))
-  }
-  xAxisData.value = times
-
-  // 模拟卡口列表
-  const checkpoints = [
-    'G30苏皖省界', 'G3京台苏鲁省界', 'G2513苏鲁省界', 'G30连霍苏皖省界', 'S69济徐苏鲁省界', // 省界
-    '徐州东收费站', '徐州南收费站', '徐州西收费站', '彭城收费站', '汉王收费站', '柳新收费站' // 市界
-  ]
-
-  rawSeriesData.value = checkpoints.map(name => {
-    const data = []
-    // 随机生成基准流量
-    let baseFlow = Math.floor(Math.random() * 100) + 50
-    if (name.includes('省界')) baseFlow += 100 // 省界流量大一些
-
-    for (let i = 0; i < 12; i++) {
-      // 随机波动
-      const fluctuation = Math.floor(Math.random() * 20) - 10
-      let value = baseFlow + fluctuation
-      if (value < 0) value = 0
-      data.push(value)
-      // 下一个点基于当前点波动
-      baseFlow = value
-    }
-    
-    // 预测值
-    const prediction = baseFlow + Math.floor(Math.random() * 15) - 5
-    
-    return {
-      name: name,
-      data: data,
-      prediction: prediction
-    }
-  })
-}
-
 // 获取数据
 const fetchData = async () => {
   try {
-    // 优先尝试调用后端接口，如果失败则使用模拟数据
-    // const res = await fetch('/api/dashboard/flow_history')
-    // const data = await res.json()
+    const response = await axios.get('/api/prediction/realtime')
     
-    // if (data.code === 200) {
-    //   xAxisData.value = data.xAxis
-    //   rawSeriesData.value = data.series
-    // } else {
-      generateMockData()
-    // }
+    if (response.data.code === 200) {
+      const data = response.data.data
+      xAxisData.value = data.xAxis
+      rawSeriesData.value = data.series
+      latestDataTime.value = data.latest_data_time
+    } else {
+      ElMessage.error('获取数据失败: ' + response.data.message)
+    }
   } catch (e) {
-    console.error('Fetch error, using mock data:', e)
-    generateMockData()
+    console.error('Fetch error:', e)
+    ElMessage.error('网络请求失败，请检查后端服务')
   }
 }
 
 // 数据分组逻辑
 const provincialData = computed(() => {
-  return rawSeriesData.value.filter(item => item.name.includes('省界'))
+  return rawSeriesData.value.filter(item => item.name.includes('省际'))
 })
 
 const cityData = computed(() => {
-  return rawSeriesData.value.filter(item => !item.name.includes('省界'))
+  return rawSeriesData.value.filter(item => !item.name.includes('省际'))
 })
 
 // 表格数据转换
 const tableData = computed(() => {
   return rawSeriesData.value.map(item => {
-    const current = item.data[item.data.length - 1] || 0
-    const prediction = item.prediction || 0
-    const diff = Number((prediction - current).toFixed(1))
+    const current = item.data && item.data.length > 0 ? item.data[item.data.length - 1] : 0
+    const prediction = item.prediction !== null ? Number(item.prediction).toFixed(2) : 'N/A'
+    
+    // 计算差值
+    let diff = 0
+    if (prediction !== 'N/A') {
+      diff = Number((prediction - current).toFixed(2))
+    }
     
     return {
       name: item.name,
-      type: item.name.includes('省界') ? '省界' : '市界',
+      type: item.name.includes('省际') ? '省际' : '市际',
       current: current,
       prediction: prediction,
       diff: diff
@@ -153,12 +121,13 @@ onMounted(() => {
   updateTime()
   timer.value = setInterval(updateTime, 1000)
   fetchData()
-  // 每5秒刷新一次模拟数据，演示动态效果
-  setInterval(generateMockData, 5000)
+  // 每30秒刷新一次数据
+  dataTimer.value = setInterval(fetchData, 30000)
 })
 
 onUnmounted(() => {
   if (timer.value) clearInterval(timer.value)
+  if (dataTimer.value) clearInterval(dataTimer.value)
 })
 </script>
 
@@ -206,6 +175,16 @@ onUnmounted(() => {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: 0 0 30px rgba(74, 158, 255, 0.5);
+}
+
+.data-time {
+  font-size: 18px;
+  color: #00D4FF;
+  margin-left: 15px;
+  font-weight: normal;
+  -webkit-text-fill-color: #00D4FF; /* 重置文字填充颜色 */
+  text-shadow: none;
+  vertical-align: middle;
 }
 
 .header-time {

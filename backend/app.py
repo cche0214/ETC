@@ -14,6 +14,10 @@ app.register_blueprint(dashboard_bp)
 from search.routes import search_bp
 app.register_blueprint(search_bp)
 
+# 注册 Prediction Blueprint
+from prediction.routes import prediction_bp
+app.register_blueprint(prediction_bp)
+
 @app.route("/")
 def home():
     return f"🚦 ETC 大数据监测系统后端运行中 (Connected to HBase: {TABLE_NAME})"

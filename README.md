@@ -288,7 +288,7 @@ Flink的版本太老了 和Hbase很不协调 捣鼓了半天
     kafka-server-start.sh -daemon $KAFKA_HOME/config/server.properties（后台启动方式）
 node1节点开启大数据集群：
     start-dfs.sh 
-    start-yarn.sh 
+    * start-yarn.sh * 
 node1打开Hbase，必须要先开HDFS再开Hbase，有次忘记了差点没把我搞死
     start-hbase.sh 
 开启thrift端口
@@ -345,7 +345,7 @@ flink run -d -m node1:8081 -c flink.etctraffic.StreamAnalysisJobV2 /export/code/
 kafka-server-stop.sh 
 hbase-daemon.sh stop thrift 
 stop-hbase.sh 
-stop-yarn.sh 
+*stop-yarn.sh *其实可以不用了
 stop-dfs.sh 
 zkServer.sh stop
 可以先关flink再一个个停止
@@ -589,3 +589,10 @@ Step 9 (最新)	v11	v10	v9	[v11, v10, v9]
 马上就要被替代了，我跟他说需求，他就把功能实现了，唉……，俱往矣…………………………
 
 感觉差不多可以进入数据库调优和RAG的阶段了 剩下的可以测试看看有什么问题 先看一下RAG吧
+
+*========================*
+2025-12-15
+预测失败 [G518-K358-省际卡口]: 模型文件不存在: C:\Users\31062\Desktop\ETC\backend\prediction\models\G518_K358_provincial.h5
+可能是我之前少算了一个卡口
+
+原来是文件名字错了 哈哈 我以为文件名字错了呢
