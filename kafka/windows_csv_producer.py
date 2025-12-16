@@ -33,8 +33,7 @@ DATA_DIR = os.path.join(BASE_DIR, 'data_all')
 TARGET_SUBDIRS = ['202312', '202401']
 
 # 发送延迟 (秒)
-SLEEP_TIME = 0.05
-
+SLEEP_TIME = 0.05   #改成0.02
 # ====================================================
 
 def create_producer():

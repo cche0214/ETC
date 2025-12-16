@@ -1,0 +1,1 @@
+invalid type: string "逻辑表：\n\nTRAFFIC.etc_records\n\n---\n\n### 4.4 索引设计（必须）\n\n- idx_hphm(HPHM)\n- idx_time(GCSJ_TS)\n- idx_area(XZQHMC)\n\n---\n\n## 5. 技术结论总结\n\n1. 数据必须先严格清洗再进入系统\n2. 行政区划天然适合做分库键\n3. 车牌号适合做分表键\n4. 流处理负责 HBase\n5. 交互查询走 MySQL + 中间件\n�JI������������

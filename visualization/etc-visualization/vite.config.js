@@ -12,12 +12,6 @@ export default defineConfig({
         changeOrigin: true
       },
 
-      // RAG 后端（8001）
-      '/rag-api': {
-        target: 'http://localhost:8001',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/rag-api/, '')
-      }
     }
   }
 })

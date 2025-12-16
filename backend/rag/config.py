@@ -21,11 +21,15 @@ LLM_MAX_TOKENS = 800
 LLM_TOP_P = 0.9              # 可选，控制多样性
 
 
+from pathlib import Path
+
 # ======================================================
 # 向量数据库配置
 # ======================================================
 
-VECTOR_DB_DIR = "./store/chroma_db"
+# 使用绝对路径，避免运行目录不同导致找不到 DB
+BASE_DIR = Path(__file__).resolve().parent
+VECTOR_DB_DIR = str(BASE_DIR / "store" / "chroma_db")
 
 
 # ======================================================
