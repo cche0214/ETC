@@ -1,45 +1,52 @@
 <template>
-  <div class="message-wrapper" :class="{ 'user-message': isUser, 'agent-message': !isUser }">
+  <div class="chat-message" :class="message.role">
     <div class="avatar">
-      <span v-if="isUser">👤</span>
-      <span v-else>🤖</span>
+      {{ message.role === 'user' ? '👤' : '🤖' }}
     </div>
     <div class="message-content">
-      <div class="message-header">
-        <span class="name">{{ isUser ? 'User' : 'DeepSeek Agent' }}</span>
-        <span class="time">{{ time }}</span>
+      <div class="bubble markdown-body" v-html="renderContent(message.content)"></div>
+      <div class="time" v-if="message.created_at">
+        {{ formatTime(message.created_at) }}
       </div>
-      <div class="message-text">{{ content }}</div>
     </div>
   </div>
 </template>
 
 <script setup>
+import MarkdownIt from 'markdown-it'
+import DOMPurify from 'dompurify'
+
 defineProps({
-  isUser: {
-    type: Boolean,
-    default: false
-  },
-  content: {
-    type: String,
+  message: {
+    type: Object,
     required: true
-  },
-  time: {
-    type: String,
-    default: ''
   }
 })
+
+const md = new MarkdownIt({
+  html: false,
+  linkify: true,
+  breaks: true
+})
+
+const renderContent = (text) => {
+  if (!text) return ''
+  const rawHtml = md.render(text)
+  return DOMPurify.sanitize(rawHtml)
+}
+
+const formatTime = (timeStr) => {
+  const date = new Date(timeStr)
+  return `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`
+}
 </script>
 
 <style scoped>
-.message-wrapper {
+.chat-message {
   display: flex;
-  gap: 15px;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 15px;
-  max-width: 80%;
-  animation: fadeIn 0.3s ease-out;
+  gap: 16px;
+  margin-bottom: 24px;
+  animation: fadeIn 0.3s ease;
 }
 
 @keyframes fadeIn {
@@ -47,17 +54,8 @@ defineProps({
   to { opacity: 1; transform: translateY(0); }
 }
 
-.user-message {
-  align-self: flex-end;
+.chat-message.user {
   flex-direction: row-reverse;
-  background: rgba(74, 158, 255, 0.1);
-  border: 1px solid rgba(74, 158, 255, 0.3);
-}
-
-.agent-message {
-  align-self: flex-start;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .avatar {
@@ -68,34 +66,94 @@ defineProps({
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 20px;
   flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(74, 158, 255, 0.3);
+}
+
+.chat-message.assistant .avatar {
+  background: rgba(74, 158, 255, 0.2);
+  box-shadow: 0 0 15px rgba(74, 158, 255, 0.2);
 }
 
 .message-content {
+  max-width: 70%;
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  max-width: calc(100% - 60px);
+  gap: 4px;
 }
 
-.message-header {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  font-size: 0.85em;
-  color: rgba(255, 255, 255, 0.6);
+.chat-message.user .message-content {
+  align-items: flex-end;
 }
 
-.user-message .message-header {
-  flex-direction: row-reverse;
-}
-
-.message-text {
+.bubble {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
   line-height: 1.6;
+  word-break: break-word; /* 允许长单词换行 */
+}
+
+.chat-message.assistant .bubble {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top-left-radius: 2px;
+  color: #e0e6ed;
+}
+
+.chat-message.user .bubble {
+  background: rgba(74, 158, 255, 0.2);
+  border: 1px solid rgba(74, 158, 255, 0.3);
+  border-top-right-radius: 2px;
   color: #fff;
-  white-space: pre-wrap;
-  word-break: break-word;
+  box-shadow: 0 4px 15px rgba(74, 158, 255, 0.1);
+}
+
+.time {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+  padding: 0 4px;
+}
+
+/* Markdown 样式适配 */
+:deep(.markdown-body) p {
+  margin-bottom: 8px;
+}
+:deep(.markdown-body) p:last-child {
+  margin-bottom: 0;
+}
+:deep(.markdown-body) ul, :deep(.markdown-body) ol {
+  padding-left: 20px;
+  margin-bottom: 8px;
+}
+:deep(.markdown-body) code {
+  background: rgba(0,0,0,0.3);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+:deep(.markdown-body) pre {
+  background: rgba(0,0,0,0.3);
+  padding: 10px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin-bottom: 8px;
+}
+:deep(.markdown-body) h1, :deep(.markdown-body) h2, :deep(.markdown-body) h3 {
+  margin-top: 10px;
+  margin-bottom: 8px;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+:deep(.markdown-body) a {
+  color: #4A9EFF;
+  text-decoration: none;
+}
+:deep(.markdown-body) blockquote {
+  border-left: 3px solid rgba(74, 158, 255, 0.5);
+  padding-left: 10px;
+  color: rgba(255,255,255,0.7);
+  margin: 8px 0;
 }
 </style>

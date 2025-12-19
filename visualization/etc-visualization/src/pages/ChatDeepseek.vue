@@ -1,67 +1,59 @@
 <template>
-  <div class="chat-page">
-    <!-- Header (Copied from Dashboard.vue) -->
+  <div class="dashboard chat-page">
     <header class="header">
       <div class="header-bg"></div>
       <button class="back-btn" @click="$router.push('/')">
         <span class="icon">←</span> 返回主页
       </button>
-      <h1 class="header-title">智能交通助手 Agent</h1>
+      <h1 class="header-title">ETC 智能交通助手</h1>
       <div class="header-time">{{ currentTime }}</div>
     </header>
 
-    <div class="chat-container">
-      <div class="messages-area" ref="messagesContainer">
-        <div v-if="messages.length === 0" class="welcome-screen">
-          <div class="logo">🤖</div>
-          <h2>我是您的智能交通助手</h2>
-          <p>我可以帮您分析交通数据、预测路况或回答相关问题。</p>
-          <div class="suggestions">
-            <button v-for="s in suggestions" :key="s" @click="handleSend(s)">{{ s }}</button>
-          </div>
+    <div class="main-container">
+      <div class="content-wrapper">
+        <!-- 左侧边栏：会话列表 -->
+        <div class="sidebar-wrapper">
+          <chat-sidebar 
+            :sessions="sessions"
+            :current-session-id="currentSessionId"
+            @create-session="handleCreateSession"
+            @select-session="handleSelectSession"
+            @delete-session="handleDeleteSession"
+          />
         </div>
-        
-        <chat-message 
-          v-for="(msg, index) in messages" 
-          :key="index"
-          :is-user="msg.isUser"
-          :content="msg.content"
-          :time="msg.time"
-        />
-        
-        <div v-if="isTyping" class="typing-indicator">
-          <div class="dots">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-          <span>Agent 正在思考...</span>
+
+        <!-- 右侧主窗口：对话界面 -->
+        <div class="chat-wrapper">
+          <chat-window 
+            :messages="currentMessages"
+            :loading="loading"
+            :streaming-content="streamingContent"
+            :streaming-thought="streamingThought"
+            @send-message="handleSendMessage"
+          />
         </div>
       </div>
-      
-      <chat-input @send="handleSend" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
-import ChatMessage from '../components/ChatDeepseek/ChatMessage.vue'
-import ChatInput from '../components/ChatDeepseek/ChatInput.vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import ChatSidebar from '../components/ChatDeepseek/ChatSidebar.vue'
+import ChatWindow from '../components/ChatDeepseek/ChatWindow.vue'
+import { getSessions, createSession, getSession, streamMessage, deleteSession } from '../api/ai'
 
 const currentTime = ref('')
-const messages = ref([])
-const isTyping = ref(false)
-const messagesContainer = ref(null)
+const sessions = ref([])
+const currentSessionId = ref('')
+const currentMessages = ref([])
+const loading = ref(false)
 
-const suggestions = [
-  "分析当前徐州市交通拥堵情况",
-  "预测未来一小时的路况",
-  "显示今日车流量统计",
-  "ETC数据异常检测"
-]
+// 流式状态
+const streamingContent = ref('')
+const streamingThought = ref('')
 
-// Time update logic (same as Dashboard)
+// 时间更新
 function updateTime() {
   const now = new Date()
   const year = now.getFullYear()
@@ -77,47 +69,141 @@ function updateTime() {
 
 let timeInterval = null
 
+// 加载会话列表
+const loadSessions = async () => {
+  try {
+    const res = await getSessions()
+    sessions.value = res || []
+    
+    // 如果没有选中会话但有列表，默认选中第一个
+    if (!currentSessionId.value && sessions.value.length > 0) {
+      handleSelectSession(sessions.value[0].id)
+    }
+  } catch (error) {
+    console.error('Failed to load sessions:', error)
+  }
+}
+
+// 创建新会话
+const handleCreateSession = async () => {
+  try {
+    const newSession = await createSession()
+    sessions.value.unshift(newSession)
+    currentSessionId.value = newSession.id
+    currentMessages.value = []
+    streamingContent.value = ''
+    streamingThought.value = ''
+  } catch (error) {
+    console.error('Failed to create session:', error)
+  }
+}
+
+// 选择会话
+const handleSelectSession = async (sessionId) => {
+  currentSessionId.value = sessionId
+  streamingContent.value = ''
+  streamingThought.value = ''
+  
+  try {
+    const sessionDetail = await getSession(sessionId)
+    currentMessages.value = sessionDetail.messages || []
+  } catch (error) {
+    console.error('Failed to load session detail:', error)
+    currentMessages.value = []
+  }
+}
+
+// 删除会话
+const handleDeleteSession = async (sessionId) => {
+  if (!confirm('确定要删除这个会话吗？')) return
+  try {
+    await deleteSession(sessionId)
+    sessions.value = sessions.value.filter(s => s.id !== sessionId)
+    if (currentSessionId.value === sessionId) {
+      currentSessionId.value = ''
+      currentMessages.value = []
+      streamingContent.value = ''
+      streamingThought.value = ''
+      if (sessions.value.length > 0) {
+        handleSelectSession(sessions.value[0].id)
+      }
+    }
+  } catch (error) {
+    console.error('Failed to delete session:', error)
+  }
+}
+
+// 发送消息
+const handleSendMessage = async (content) => {
+  if (!currentSessionId.value) {
+    await handleCreateSession()
+  }
+
+  // 1. 立即显示用户消息
+  const userMsg = {
+    role: 'user',
+    content: content,
+    created_at: new Date().toISOString()
+  }
+  currentMessages.value.push(userMsg)
+  
+  loading.value = true
+  streamingContent.value = ''
+  streamingThought.value = ''
+
+  try {
+    // 2. 调用流式接口
+    await streamMessage(currentSessionId.value, content, (type, text) => {
+        // 回调处理
+        if (type === 'thought') {
+            // 如果是思考过程，更新思考变量
+            // 注意：有时候思考过程是分段送来的，这里简单处理为直接显示最新状态
+            // 或者累加。根据后端实现，yield "🤖 正在思考..." 是完整的句子，不是增量字符。
+            // 后端 api.py: yield "🤖 正在思考: ...\n"
+            // 我们直接赋值或换行追加
+            streamingThought.value = text 
+        } else if (type === 'message') {
+            // 消息正文是 token 流，需要累加
+            streamingContent.value += text
+        } else if (type === 'error') {
+            // 错误信息也显示在正文里
+            streamingContent.value += `\n\n**${text}**`
+        }
+    })
+    
+    // 3. 结束后，重新获取完整消息列表（确保一致性）
+    // 或者直接把 streamingContent 转为一条 message push 进去
+    const sessionDetail = await getSession(currentSessionId.value)
+    currentMessages.value = sessionDetail.messages || []
+    
+  } catch (error) {
+    console.error('Failed to send message:', error)
+    currentMessages.value.push({
+      role: 'assistant',
+      content: '⚠️ 发送失败，请检查网络连接。',
+      created_at: new Date().toISOString()
+    })
+  } finally {
+    loading.value = false
+    streamingContent.value = ''
+    streamingThought.value = ''
+  }
+}
+
 onMounted(() => {
   updateTime()
   timeInterval = setInterval(updateTime, 1000)
+  loadSessions()
 })
 
 onUnmounted(() => {
   if (timeInterval) clearInterval(timeInterval)
 })
-
-const scrollToBottom = async () => {
-  await nextTick()
-  if (messagesContainer.value) {
-    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
-  }
-}
-
-const handleSend = async (text) => {
-  // Add user message
-  messages.value.push({
-    isUser: true,
-    content: text,
-    time: new Date().toLocaleTimeString()
-  })
-  scrollToBottom()
-  
-  // Simulate Agent response
-  isTyping.value = true
-  setTimeout(() => {
-    isTyping.value = false
-    messages.value.push({
-      isUser: false,
-      content: "这是一个静态演示页面。后期将接入真正的 DeepSeek Agent 接口来回答您的问题：\n\n" + text + "\n\n(目前仅为UI展示)",
-      time: new Date().toLocaleTimeString()
-    })
-    scrollToBottom()
-  }, 1500)
-}
 </script>
 
 <style scoped>
-.chat-page {
+/* 复用 Dashboard 的基础样式 */
+.dashboard {
   width: 100%;
   height: 100vh;
   background: linear-gradient(135deg, #0a0f2d 0%, #1a1f3a 50%, #0a0f2d 100%);
@@ -127,7 +213,6 @@ const handleSend = async (text) => {
   overflow: hidden;
 }
 
-/* Header styles copied from Dashboard.vue */
 .header {
   position: relative;
   height: 80px;
@@ -195,138 +280,40 @@ const handleSend = async (text) => {
 
 .back-btn:hover {
   background: rgba(74, 158, 255, 0.3);
-  box-shadow: 0 0 15px rgba(74, 158, 255, 0.3);
-  text-shadow: 0 0 5px rgba(74, 158, 255, 0.8);
 }
 
-/* Chat specific styles */
-.chat-container {
+/* 聊天页面特有布局 */
+.main-container {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.messages-area {
-  flex: 1;
-  overflow-y: auto;
   padding: 20px;
+  overflow: hidden;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  scroll-behavior: smooth;
-}
-
-/* Custom Scrollbar */
-.messages-area::-webkit-scrollbar {
-  width: 8px;
-}
-
-.messages-area::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.messages-area::-webkit-scrollbar-thumb {
-  background: rgba(74, 158, 255, 0.3);
-  border-radius: 4px;
-}
-
-.messages-area::-webkit-scrollbar-thumb:hover {
-  background: rgba(74, 158, 255, 0.5);
-}
-
-.welcome-screen {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.8);
-  gap: 20px;
-  min-height: 400px;
+  height: calc(100vh - 80px); /* 减去header高度 */
 }
 
-.welcome-screen .logo {
-  font-size: 80px;
-  margin-bottom: 20px;
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
-  100% { transform: translateY(0px); }
-}
-
-.welcome-screen h2 {
-  font-size: 28px;
-  margin: 0;
-  background: linear-gradient(90deg, #fff, #4A9EFF);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.suggestions {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
-  margin-top: 30px;
-  max-width: 600px;
+.content-wrapper {
   width: 100%;
-}
-
-.suggestions button {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(74, 158, 255, 0.3);
-  color: rgba(255, 255, 255, 0.9);
-  padding: 15px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s;
-  text-align: left;
-  font-size: 14px;
-}
-
-.suggestions button:hover {
-  background: rgba(74, 158, 255, 0.2);
-  border-color: #4A9EFF;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.typing-indicator {
-  padding: 10px 20px;
-  color: rgba(255, 255, 255, 0.5);
-  font-style: italic;
-  font-size: 14px;
+  max-width: 1400px;
+  height: 100%;
   display: flex;
-  align-items: center;
-  gap: 10px;
+  gap: 20px;
+  background: rgba(10, 15, 45, 0.5);
+  border: 1px solid rgba(74, 158, 255, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
 }
 
-.dots {
-  display: flex;
-  gap: 4px;
+.sidebar-wrapper {
+  width: 280px;
+  flex-shrink: 0;
+  height: 100%;
 }
 
-.dots span {
-  width: 6px;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 50%;
-  animation: bounce 1.4s infinite ease-in-out both;
-}
-
-.dots span:nth-child(1) { animation-delay: -0.32s; }
-.dots span:nth-child(2) { animation-delay: -0.16s; }
-
-@keyframes bounce {
-  0%, 80%, 100% { transform: scale(0); }
-  40% { transform: scale(1); }
+.chat-wrapper {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
 }
 </style>
