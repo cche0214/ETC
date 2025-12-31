@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from fastapi.staticfiles import StaticFiles
+import os
 
 from .database import create_tables
 
@@ -28,6 +30,13 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+# === 新增：确保目录存在并挂载静态资源 ===
+CHARTS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "charts")
+os.makedirs(CHARTS_DIR, exist_ok=True)
+
+# 将 /static 路径映射到本地 static 目录
+app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")), name="static")
 
 app.add_middleware(
     CORSMiddleware,

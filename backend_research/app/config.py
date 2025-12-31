@@ -22,6 +22,9 @@ class Settings:
     TRAFFIC_DB_PORT: str = os.getenv("TRAFFIC_DB_PORT", "3307")
     TRAFFIC_DB_NAME: str = os.getenv("TRAFFIC_DB_NAME", "traffic")
     
+    # API 服务地址 (用于生成静态资源链接)
+    API_BASE_URL: str = os.getenv("API_BASE_URL", "http://localhost:8001")
+    
     @property
     def SQLALCHEMY_TRAFFIC_DATABASE_URI(self) -> str:
         # 注意：密码需要做 URL 编码

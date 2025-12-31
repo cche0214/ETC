@@ -1,0 +1,211 @@
+{
+  "S250-K1-省际卡口": {
+    "file": "S250_K1_provincial.csv",
+    "type": "省际卡口",
+    "data_points": 2590,
+    "avg_5min": 10.54,
+    "avg_1hour": 126.64,
+    "avg_1day": 2985.96,
+    "max_5min": 34,
+    "max_1hour": 239,
+    "max_1day": 3648
+  },
+  "X308-K19-市际卡口": {
+    "file": "X308_K19_city.csv",
+    "type": "市际卡口",
+    "data_points": 2584,
+    "avg_5min": 3.01,
+    "avg_1hour": 36.12,
+    "avg_1day": 838.85,
+    "max_5min": 17,
+    "max_1hour": 123,
+    "max_1day": 1134
+  },
+  "S251-K5-省际卡口": {
+    "file": "S251_K5_provincial.csv",
+    "type": "省际卡口",
+    "data_points": 2588,
+    "avg_5min": 2.18,
+    "avg_1hour": 26.19,
+    "avg_1day": 613.17,
+    "max_5min": 17,
+    "max_1hour": 94,
+    "max_1day": 829
+  },
+  "S325-K63-市际卡口": {
+    "file": "S325_K63_city.csv",
+    "type": "市际卡口",
+    "data_points": 2590,
+    "avg_5min": 13.55,
+    "avg_1hour": 162.67,
+    "avg_1day": 3760.93,
+    "max_5min": 54,
+    "max_1hour": 491,
+    "max_1day": 4694
+  },
+  "G3-K731-省际卡口": {
+    "file": "G3_K731_provincial.csv",
+    "type": "省际卡口",
+    "data_points": 2590,
+    "avg_5min": 14.85,
+    "avg_1hour": 178.16,
+    "avg_1day": 4130.93,
+    "max_5min": 62,
+    "max_1hour": 545,
+    "max_1day": 5530
+  },
+  "G311-K207-省际卡口": {
+    "file": "G311_K207_provincial.csv",
+    "type": "省际卡口",
+    "data_points": 2589,
+    "avg_5min": 2.77,
+    "avg_1hour": 33.25,
+    "avg_1day": 797.86,
+    "max_5min": 23,
+    "max_1hour": 165,
+    "max_1day": 1435
+  },
+  "G310-K310-省际卡口": {
+    "file": "G310_K310_provincial.csv",
+    "type": "省际卡口",
+    "data_points": 2313,
+    "avg_5min": 5.2,
+    "avg_1hour": 62.39,
+    "avg_1day": 1471.9,
+    "max_5min": 24,
+    "max_1hour": 189,
+    "max_1day": 1825
+  },
+  "G518518-K358-省际卡口": {
+    "file": "G518518_K358_provincial.csv",
+    "type": "省际卡口",
+    "data_points": 2421,
+    "avg_5min": 9.63,
+    "avg_1hour": 115.6,
+    "avg_1day": 2632.64,
+    "max_5min": 40,
+    "max_1hour": 351,
+    "max_1day": 3593
+  },
+  "S253-K0-省际卡口": {
+    "file": "S253_K0_provincial.csv",
+    "type": "省际卡口",
+    "data_points": 1914,
+    "avg_5min": 5.82,
+    "avg_1hour": 70.05,
+    "avg_1day": 1631.97,
+    "max_5min": 23,
+    "max_1hour": 177,
+    "max_1day": 1796
+  },
+  "S323-K10-市际卡口": {
+    "file": "S323_K10_city.csv",
+    "type": "市际卡口",
+    "data_points": 2588,
+    "avg_5min": 2.73,
+    "avg_1hour": 32.73,
+    "avg_1day": 768.14,
+    "max_5min": 18,
+    "max_1hour": 123,
+    "max_1day": 1028
+  },
+  "G104-K873-省际卡口": {
+    "file": "G104_K873_provincial.csv",
+    "type": "省际卡口",
+    "data_points": 2575,
+    "avg_5min": 11.24,
+    "avg_1hour": 134.87,
+    "avg_1day": 3085.28,
+    "max_5min": 73,
+    "max_1hour": 605,
+    "max_1day": 4033
+  },
+  "G104-K744-省际卡口": {
+    "file": "G104_K744_provincial.csv",
+    "type": "省际卡口",
+    "data_points": 2585,
+    "avg_5min": 8.38,
+    "avg_1hour": 100.57,
+    "avg_1day": 2324.32,
+    "max_5min": 39,
+    "max_1hour": 304,
+    "max_1day": 3124
+  },
+  "G206-K816-省际卡口": {
+    "file": "G206_K816_provincial.csv",
+    "type": "省际卡口",
+    "data_points": 2569,
+    "avg_5min": 5.85,
+    "avg_1hour": 70.24,
+    "avg_1day": 1607.15,
+    "max_5min": 35,
+    "max_1hour": 282,
+    "max_1day": 2028
+  },
+  "S505-K10-市际卡口": {
+    "file": "S505_K10_city.csv",
+    "type": "市际卡口",
+    "data_points": 2589,
+    "avg_5min": 3.46,
+    "avg_1hour": 41.51,
+    "avg_1day": 954.39,
+    "max_5min": 20,
+    "max_1hour": 174,
+    "max_1day": 1300
+  },
+  "S323-K96-市际卡口": {
+    "file": "S323_K96_city.csv",
+    "type": "市际卡口",
+    "data_points": 2429,
+    "avg_5min": 11.76,
+    "avg_1hour": 141.05,
+    "avg_1day": 3086.85,
+    "max_5min": 59,
+    "max_1hour": 546,
+    "max_1day": 4278
+  },
+  "S252-K56-省际卡口": {
+    "file": "S252_K56_provincial.csv",
+    "type": "省际卡口",
+    "data_points": 2481,
+    "avg_5min": 6.25,
+    "avg_1hour": 74.74,
+    "avg_1day": 1688.29,
+    "max_5min": 33,
+    "max_1hour": 291,
+    "max_1day": 2244
+  },
+  "S324-K201-市际卡口": {
+    "file": "S324_K201_city.csv",
+    "type": "市际卡口",
+    "data_points": 2419,
+    "avg_5min": 3.92,
+    "avg_1hour": 47.0,
+    "avg_1day": 1052.05,
+    "max_5min": 25,
+    "max_1hour": 213,
+    "max_1day": 1390
+  },
+  "G235-K10-市际卡口": {
+    "file": "G235_K10_city.csv",
+    "type": "市际卡口",
+    "data_points": 2462,
+    "avg_5min": 8.79,
+    "avg_1hour": 105.3,
+    "avg_1day": 2406.32,
+    "max_5min": 51,
+    "max_1hour": 367,
+    "max_1day": 3541
+  },
+  "G237-K148-省际卡口": {
+    "file": "G237_K148_provincial.csv",
+    "type": "省际卡口",
+    "data_points": 557,
+    "avg_5min": 0.01,
+    "avg_1hour": 0.05,
+    "avg_1day": 1.04,
+    "max_5min": 2,
+    "max_1hour": 2,
+    "max_1day": 2
+  }
+}

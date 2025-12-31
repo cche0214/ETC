@@ -1,0 +1,129 @@
+{
+  "training_time": "2025-12-15 18:52:01.869272",
+  "duration_seconds": 222.963475,
+  "total_checkpoints": 19,
+  "successful": 19,
+  "failed": 0,
+  "results": [
+    {
+      "checkpoint": "G104_K744_provincial",
+      "val_mae": 3.2166366577148438,
+      "samples": 2853,
+      "model_path": "saved_models/short_term\\G104_K744_provincial.h5"
+    },
+    {
+      "checkpoint": "G104_K873_provincial",
+      "val_mae": 3.848107099533081,
+      "samples": 2843,
+      "model_path": "saved_models/short_term\\G104_K873_provincial.h5"
+    },
+    {
+      "checkpoint": "G206_K816_provincial",
+      "val_mae": 2.054155111312866,
+      "samples": 2837,
+      "model_path": "saved_models/short_term\\G206_K816_provincial.h5"
+    },
+    {
+      "checkpoint": "G235_K10_city",
+      "val_mae": 3.9471027851104736,
+      "samples": 2730,
+      "model_path": "saved_models/short_term\\G235_K10_city.h5"
+    },
+    {
+      "checkpoint": "G237_K148_provincial",
+      "val_mae": 0.0019184747943654656,
+      "samples": 825,
+      "model_path": "saved_models/short_term\\G237_K148_provincial.h5"
+    },
+    {
+      "checkpoint": "G310_K310_provincial",
+      "val_mae": 2.368842601776123,
+      "samples": 2581,
+      "model_path": "saved_models/short_term\\G310_K310_provincial.h5"
+    },
+    {
+      "checkpoint": "G311_K207_provincial",
+      "val_mae": 2.466872453689575,
+      "samples": 2857,
+      "model_path": "saved_models/short_term\\G311_K207_provincial.h5"
+    },
+    {
+      "checkpoint": "G3_K731_provincial",
+      "val_mae": 4.5001912117004395,
+      "samples": 2858,
+      "model_path": "saved_models/short_term\\G3_K731_provincial.h5"
+    },
+    {
+      "checkpoint": "G518518_K358_provincial",
+      "val_mae": 2.9427332878112793,
+      "samples": 2689,
+      "model_path": "saved_models/short_term\\G518518_K358_provincial.h5"
+    },
+    {
+      "checkpoint": "S250_K1_provincial",
+      "val_mae": 4.158387660980225,
+      "samples": 2858,
+      "model_path": "saved_models/short_term\\S250_K1_provincial.h5"
+    },
+    {
+      "checkpoint": "S251_K5_provincial",
+      "val_mae": 1.0620028972625732,
+      "samples": 2856,
+      "model_path": "saved_models/short_term\\S251_K5_provincial.h5"
+    },
+    {
+      "checkpoint": "S252_K56_provincial",
+      "val_mae": 2.585437297821045,
+      "samples": 2749,
+      "model_path": "saved_models/short_term\\S252_K56_provincial.h5"
+    },
+    {
+      "checkpoint": "S253_K0_provincial",
+      "val_mae": 2.440396308898926,
+      "samples": 2182,
+      "model_path": "saved_models/short_term\\S253_K0_provincial.h5"
+    },
+    {
+      "checkpoint": "S323_K10_city",
+      "val_mae": 1.4654783010482788,
+      "samples": 2856,
+      "model_path": "saved_models/short_term\\S323_K10_city.h5"
+    },
+    {
+      "checkpoint": "S323_K96_city",
+      "val_mae": 4.208045482635498,
+      "samples": 2697,
+      "model_path": "saved_models/short_term\\S323_K96_city.h5"
+    },
+    {
+      "checkpoint": "S324_K201_city",
+      "val_mae": 1.350236177444458,
+      "samples": 2687,
+      "model_path": "saved_models/short_term\\S324_K201_city.h5"
+    },
+    {
+      "checkpoint": "S325_K63_city",
+      "val_mae": 4.139908313751221,
+      "samples": 2858,
+      "model_path": "saved_models/short_term\\S325_K63_city.h5"
+    },
+    {
+      "checkpoint": "S505_K10_city",
+      "val_mae": 1.5323586463928223,
+      "samples": 2857,
+      "model_path": "saved_models/short_term\\S505_K10_city.h5"
+    },
+    {
+      "checkpoint": "X308_K19_city",
+      "val_mae": 1.3959567546844482,
+      "samples": 2852,
+      "model_path": "saved_models/short_term\\X308_K19_city.h5"
+    }
+  ],
+  "statistics": {
+    "mean_mae": 2.6149877644401336,
+    "min_mae": 0.0019184747943654656,
+    "max_mae": 4.5001912117004395,
+    "std_mae": 1.252601533991048
+  }
+}

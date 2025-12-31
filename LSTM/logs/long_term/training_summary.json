@@ -1,0 +1,149 @@
+{
+  "training_time": "2025-12-16 15:17:46.454246",
+  "duration_seconds": 67.872819,
+  "total_checkpoints": 19,
+  "successful": 19,
+  "failed": 0,
+  "data_warnings": 0,
+  "results": [
+    {
+      "checkpoint": "G104_K744_provincial",
+      "val_mae": 323.9379577636719,
+      "samples": 55,
+      "model_path": "saved_models/long_term\\G104_K744_provincial.h5",
+      "warning": false
+    },
+    {
+      "checkpoint": "G104_K873_provincial",
+      "val_mae": 597.1874389648438,
+      "samples": 55,
+      "model_path": "saved_models/long_term\\G104_K873_provincial.h5",
+      "warning": false
+    },
+    {
+      "checkpoint": "G206_K816_provincial",
+      "val_mae": 302.0870361328125,
+      "samples": 55,
+      "model_path": "saved_models/long_term\\G206_K816_provincial.h5",
+      "warning": false
+    },
+    {
+      "checkpoint": "G235_K10_city",
+      "val_mae": 336.8138732910156,
+      "samples": 55,
+      "model_path": "saved_models/long_term\\G235_K10_city.h5",
+      "warning": false
+    },
+    {
+      "checkpoint": "G237_K148_provincial",
+      "val_mae": 39.992088317871094,
+      "samples": 52,
+      "model_path": "saved_models/long_term\\G237_K148_provincial.h5",
+      "warning": false
+    },
+    {
+      "checkpoint": "G310_K310_provincial",
+      "val_mae": 627.5546264648438,
+      "samples": 55,
+      "model_path": "saved_models/long_term\\G310_K310_provincial.h5",
+      "warning": false
+    },
+    {
+      "checkpoint": "G311_K207_provincial",
+      "val_mae": 385.5079040527344,
+      "samples": 55,
+      "model_path": "saved_models/long_term\\G311_K207_provincial.h5",
+      "warning": false
+    },
+    {
+      "checkpoint": "G3_K731_provincial",
+      "val_mae": 165.86050415039062,
+      "samples": 55,
+      "model_path": "saved_models/long_term\\G3_K731_provincial.h5",
+      "warning": false
+    },
+    {
+      "checkpoint": "G518518_K358_provincial",
+      "val_mae": 409.6890563964844,
+      "samples": 55,
+      "model_path": "saved_models/long_term\\G518518_K358_provincial.h5",
+      "warning": false
+    },
+    {
+      "checkpoint": "S250_K1_provincial",
+      "val_mae": 380.6831359863281,
+      "samples": 55,
+      "model_path": "saved_models/long_term\\S250_K1_provincial.h5",
+      "warning": false
+    },
+    {
+      "checkpoint": "S251_K5_provincial",
+      "val_mae": 94.5693359375,
+      "samples": 55,
+      "model_path": "saved_models/long_term\\S251_K5_provincial.h5",
+      "warning": false
+    },
+    {
+      "checkpoint": "S252_K56_provincial",
+      "val_mae": 252.6220703125,
+      "samples": 55,
+      "model_path": "saved_models/long_term\\S252_K56_provincial.h5",
+      "warning": false
+    },
+    {
+      "checkpoint": "S253_K0_provincial",
+      "val_mae": 236.99888610839844,
+      "samples": 55,
+      "model_path": "saved_models/long_term\\S253_K0_provincial.h5",
+      "warning": false
+    },
+    {
+      "checkpoint": "S323_K10_city",
+      "val_mae": 187.22280883789062,
+      "samples": 55,
+      "model_path": "saved_models/long_term\\S323_K10_city.h5",
+      "warning": false
+    },
+    {
+      "checkpoint": "S323_K96_city",
+      "val_mae": 330.2293701171875,
+      "samples": 55,
+      "model_path": "saved_models/long_term\\S323_K96_city.h5",
+      "warning": false
+    },
+    {
+      "checkpoint": "S324_K201_city",
+      "val_mae": 69.14244842529297,
+      "samples": 55,
+      "model_path": "saved_models/long_term\\S324_K201_city.h5",
+      "warning": false
+    },
+    {
+      "checkpoint": "S325_K63_city",
+      "val_mae": 466.2490539550781,
+      "samples": 55,
+      "model_path": "saved_models/long_term\\S325_K63_city.h5",
+      "warning": false
+    },
+    {
+      "checkpoint": "S505_K10_city",
+      "val_mae": 146.5366973876953,
+      "samples": 55,
+      "model_path": "saved_models/long_term\\S505_K10_city.h5",
+      "warning": false
+    },
+    {
+      "checkpoint": "X308_K19_city",
+      "val_mae": 233.29214477539062,
+      "samples": 55,
+      "model_path": "saved_models/long_term\\X308_K19_city.h5",
+      "warning": false
+    }
+  ],
+  "statistics": {
+    "mean_mae": 294.0092861777858,
+    "min_mae": 39.992088317871094,
+    "max_mae": 627.5546264648438,
+    "std_mae": 158.8273971316227
+  }
+}

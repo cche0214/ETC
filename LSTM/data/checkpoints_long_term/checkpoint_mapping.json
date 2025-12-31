@@ -1,0 +1,287 @@
+{
+  "S250-K1-省际卡口": {
+    "file": "S250_K1_provincial.npz",
+    "type": "省际卡口",
+    "samples": 55,
+    "seq_shape": [
+      55,
+      7,
+      1
+    ],
+    "feature_shape": [
+      55,
+      7
+    ],
+    "avg_daily": 1393.56
+  },
+  "X308-K19-市际卡口": {
+    "file": "X308_K19_city.npz",
+    "type": "市际卡口",
+    "samples": 55,
+    "seq_shape": [
+      55,
+      7,
+      1
+    ],
+    "feature_shape": [
+      55,
+      7
+    ],
+    "avg_daily": 330.15
+  },
+  "S251-K5-省际卡口": {
+    "file": "S251_K5_provincial.npz",
+    "type": "省际卡口",
+    "samples": 55,
+    "seq_shape": [
+      55,
+      7,
+      1
+    ],
+    "feature_shape": [
+      55,
+      7
+    ],
+    "avg_daily": 240.44
+  },
+  "S325-K63-市际卡口": {
+    "file": "S325_K63_city.npz",
+    "type": "市际卡口",
+    "samples": 55,
+    "seq_shape": [
+      55,
+      7,
+      1
+    ],
+    "feature_shape": [
+      55,
+      7
+    ],
+    "avg_daily": 1131.38
+  },
+  "G3-K731-省际卡口": {
+    "file": "G3_K731_provincial.npz",
+    "type": "省际卡口",
+    "samples": 55,
+    "seq_shape": [
+      55,
+      7,
+      1
+    ],
+    "feature_shape": [
+      55,
+      7
+    ],
+    "avg_daily": 1192.47
+  },
+  "G311-K207-省际卡口": {
+    "file": "G311_K207_provincial.npz",
+    "type": "省际卡口",
+    "samples": 55,
+    "seq_shape": [
+      55,
+      7,
+      1
+    ],
+    "feature_shape": [
+      55,
+      7
+    ],
+    "avg_daily": 1198.65
+  },
+  "G310-K310-省际卡口": {
+    "file": "G310_K310_provincial.npz",
+    "type": "省际卡口",
+    "samples": 55,
+    "seq_shape": [
+      55,
+      7,
+      1
+    ],
+    "feature_shape": [
+      55,
+      7
+    ],
+    "avg_daily": 837.56
+  },
+  "G518518-K358-省际卡口": {
+    "file": "G518518_K358_provincial.npz",
+    "type": "省际卡口",
+    "samples": 55,
+    "seq_shape": [
+      55,
+      7,
+      1
+    ],
+    "feature_shape": [
+      55,
+      7
+    ],
+    "avg_daily": 686.11
+  },
+  "S253-K0-省际卡口": {
+    "file": "S253_K0_provincial.npz",
+    "type": "省际卡口",
+    "samples": 55,
+    "seq_shape": [
+      55,
+      7,
+      1
+    ],
+    "feature_shape": [
+      55,
+      7
+    ],
+    "avg_daily": 416.49
+  },
+  "S323-K10-市际卡口": {
+    "file": "S323_K10_city.npz",
+    "type": "市际卡口",
+    "samples": 55,
+    "seq_shape": [
+      55,
+      7,
+      1
+    ],
+    "feature_shape": [
+      55,
+      7
+    ],
+    "avg_daily": 397.69
+  },
+  "G104-K873-省际卡口": {
+    "file": "G104_K873_provincial.npz",
+    "type": "省际卡口",
+    "samples": 55,
+    "seq_shape": [
+      55,
+      7,
+      1
+    ],
+    "feature_shape": [
+      55,
+      7
+    ],
+    "avg_daily": 1184.11
+  },
+  "G104-K744-省际卡口": {
+    "file": "G104_K744_provincial.npz",
+    "type": "省际卡口",
+    "samples": 55,
+    "seq_shape": [
+      55,
+      7,
+      1
+    ],
+    "feature_shape": [
+      55,
+      7
+    ],
+    "avg_daily": 845.53
+  },
+  "G206-K816-省际卡口": {
+    "file": "G206_K816_provincial.npz",
+    "type": "省际卡口",
+    "samples": 55,
+    "seq_shape": [
+      55,
+      7,
+      1
+    ],
+    "feature_shape": [
+      55,
+      7
+    ],
+    "avg_daily": 508.42
+  },
+  "S505-K10-市际卡口": {
+    "file": "S505_K10_city.npz",
+    "type": "市际卡口",
+    "samples": 55,
+    "seq_shape": [
+      55,
+      7,
+      1
+    ],
+    "feature_shape": [
+      55,
+      7
+    ],
+    "avg_daily": 316.56
+  },
+  "S323-K96-市际卡口": {
+    "file": "S323_K96_city.npz",
+    "type": "市际卡口",
+    "samples": 55,
+    "seq_shape": [
+      55,
+      7,
+      1
+    ],
+    "feature_shape": [
+      55,
+      7
+    ],
+    "avg_daily": 795.22
+  },
+  "S252-K56-省际卡口": {
+    "file": "S252_K56_provincial.npz",
+    "type": "省际卡口",
+    "samples": 55,
+    "seq_shape": [
+      55,
+      7,
+      1
+    ],
+    "feature_shape": [
+      55,
+      7
+    ],
+    "avg_daily": 471.95
+  },
+  "S324-K201-市际卡口": {
+    "file": "S324_K201_city.npz",
+    "type": "市际卡口",
+    "samples": 55,
+    "seq_shape": [
+      55,
+      7,
+      1
+    ],
+    "feature_shape": [
+      55,
+      7
+    ],
+    "avg_daily": 219.07
+  },
+  "G235-K10-市际卡口": {
+    "file": "G235_K10_city.npz",
+    "type": "市际卡口",
+    "samples": 55,
+    "seq_shape": [
+      55,
+      7,
+      1
+    ],
+    "feature_shape": [
+      55,
+      7
+    ],
+    "avg_daily": 885.02
+  },
+  "G237-K148-省际卡口": {
+    "file": "G237_K148_provincial.npz",
+    "type": "省际卡口",
+    "samples": 52,
+    "seq_shape": [
+      52,
+      7,
+      1
+    ],
+    "feature_shape": [
+      52,
+      7
+    ],
+    "avg_daily": 8.98
+  }
+}
